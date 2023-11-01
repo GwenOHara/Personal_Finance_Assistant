@@ -12,54 +12,54 @@ library(openxlsx)
 library(data.table)
 library(DT)
 
+source("./Functions.R")
+
+rv <- reactiveValues()
+
+####App####
+
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
-    # Application title
-    titlePanel(htmlOutput('title')),
-
-    # Sidebar with a slider input for number of bins 
-    # sidebarLayout(
-    #     sidebarPanel(
-    #         # sliderInput("bins",
-    #         #             "Number of bins:",
-    #         #             min = 1,
-    #         #             max = 50,
-    #         #             value = 30)
-    #     ),
-
-        # Show a plot of the generated distribution
-        mainPanel(  br(),
-                    br(),
-          actionButton('bondchecker', 'Check My Bond Numbers', icon = icon("gears"),
-                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-          br(),
-          br(),
-          br(),
-          br(),
-          DTOutput("pbtable")
-        )
-    #)
+  
+  # Application title
+  titlePanel(htmlOutput('title')),
+  mainPanel(  br(),
+              br(),
+              uiOutput('bond.check.button'),
+              br(),
+              br(),
+              span(textOutput('successful.message'), style = "color:green; font-size:20px"), 
+              span(textOutput('unsuccessful.message'), style = "color:red; font-size:20px"), 
+              DTOutput("prize.matches"),
+              br(),
+              br(),
+              DTOutput("pbtable")
+  )
+  
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-# Determine the current month and the url based on this month
+  
+  # Determine the current month 
   date <- tolower(format(Sys.Date(), "%B-%Y"))
+  output$title <- renderText(paste("Premium Bonds High Value Prize Checker", format(Sys.Date(), "%B %Y")))
+  
+  # Determine the url based on this month
   newFile <- paste0("https://www.nsandi.com/files/asset/xlsx/prize-", date, ".xlsx")
   # Create filename to save the data to system folder
   file_name <- paste0("prize-", date, ".csv")
   file_path <- paste0(getwd(),"/data/")
   file <- paste0(file_path, file_name)
   
-  output$title <- renderText(paste("Premium Bonds High Value Prize Checker", format(Sys.Date(), "%B %Y")))
+  
   
   
   options(scipen = 999)
-  if(!file.exists(file)){
-    #Add in a shiny warning if the newFile doesn't exist and stop
+  #Add in a shiny warning if the newFile doesn't exist and stop
+  #Add in a Check if URL exists first and if not stop
   prem.bond.prize.data <- data.table(read.xlsx(newFile, startRow = 3))
   
   setnames(prem.bond.prize.data, 
@@ -68,25 +68,81 @@ server <- function(input, output) {
   prem.bond.prize.data[, `Date of Purchase` := format(as.POSIXct(as.Date(`Date of Purchase`, 
                                                                          origin = "1900-01-01")), '%b-%y')]
   
-  write.csv(prem.bond.prize.data, paste0(file_path, file_name))
-  
   prem.bond.prize.data <- as.data.frame(prem.bond.prize.data)
   
-  } else {
-    prem.bond.prize.data <- read.csv(file)
-    prem.bond.prize.data <- subset(prem.bond.prize.data, select = -c(X))
-  }
+  
   
   prem.bond.prize.data$Area <- as.factor(prem.bond.prize.data$Area)
+  rv$prem.bonds.prize.data <- prem.bond.prize.data
   
   
- output$pbtable <- renderDT(prem.bond.prize.data, 
-                            filter = "top",
-                            options = list(
-                            pageLength = 1000,
-                            pagination = TRUE
-                            ))
-
+  output$pbtable <- renderDT(prem.bond.prize.data, 
+                             filter = "top",
+                             options = list(
+                               pageLength = 1000,
+                               pagination = TRUE
+                             ))
+  
+  output$bond.check.button <- renderUI(
+    actionButton('bondchecker', 'Check My Bond Numbers', icon = icon("gears"),
+                 style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"))
+  
+  
+  observeEvent(input$bondchecker,{
+    bonds <- read.csv(paste0(file_path, "bonds.csv"))
+    if(file.exists(paste0(file_path, 'last_time_bonds.csv'))){
+      last.time.bonds <- read.csv(paste0(file_path, "last_time_bonds.csv"))
+      last.time.bonds <- subset(last.time.bonds, select = -c(X))
+      if(any(bonds != last.time.bonds)){
+        all.bonds <- MakeBondNumbers(bonds = bonds, file_path = file_path)
+        
+      } else {
+        all.bonds <- read.csv(paste0(file_path, "all_bonds.csv"))
+        all.bonds <- subset(all.bonds, select = -c(X))
+      }
+      
+      
+    } else {
+      all.bonds <- MakeBondNumbers(bonds = bonds, file_path = file_path)
+      
+    }
+    
+    
+    #test.data2 <- data.table(bonds = rv$prem.bonds.prize.data$`Bond Number`[1:3],
+    #                        owner = "Graham")
+    
+    #if(any(rv$prem.bonds.prize.data$`Bond Number` %in% test.data2$bonds)){
+    
+    
+    if(any(rv$prem.bonds.prize.data$`Bond Number` %in% all.bonds$bonds)){
+      output$successful.message <- renderText(("There is a match in the high value winners this month!"))
+      
+      
+      table <- data.table(rv$prem.bonds.prize.data)
+      match.table <- table[, match := lapply(`Bond Number`, function(x) x %in% all.bonds$bonds)]
+      filter.match.table <-  match.table[`match` == "TRUE"][, `match` := NULL]
+      
+      
+      setkey(filter.match.table, `Bond Number`)
+      setkey(all.bonds, `bonds`)
+      filter.match.table[all.bonds]
+      
+      output$prize.matches <- renderDT(filter.match.table, 
+                                       filter = "top",
+                                       options = list(
+                                         pageLength = 1000,
+                                         pagination = TRUE
+                                       ))
+      
+    } else {
+      output$unsuccessful.message <- renderText(("Sorry no Bonds match the high value winners this month"))
+      
+    }
+    
+    
+  })
+  
+  
 }
 
 # Run the application 
