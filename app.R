@@ -54,7 +54,6 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  
   # Determine the current month 
   date <- tolower(format(Sys.Date(), "%B-%Y"))
   output$title <- renderText(paste("Premium Bonds High Value Prize Checker", format(Sys.Date(), "%B %Y")))
@@ -92,11 +91,15 @@ server <- function(input, output) {
   
   
   observeEvent(input$bondchecker,{
+withProgress(message = "Checking numbers", 
+            # style = "old",
+             {
     bonds <- read.csv(paste0(file_path, "bonds.csv"))
     if(file.exists(paste0(file_path, 'last_time_bonds.csv'))){
       last.time.bonds <- read.csv(paste0(file_path, "last_time_bonds.csv"))
       last.time.bonds <- subset(last.time.bonds, select = -c(X))
-      if(any(bonds != last.time.bonds)){
+      
+      if(any(!(bonds$from %in% last.time.bonds$from))){
         all.bonds <- MakeBondNumbers(bonds = bonds, file_path = file_path)
         
       } else {
@@ -110,7 +113,7 @@ server <- function(input, output) {
       
     }
     
-    
+    incProgress(0.25)
     #test.data2 <- data.table(bonds = rv$prem.bonds.prize.data$`Bond Number`[1:3],
     #                        owner = "Graham")
     
@@ -141,6 +144,8 @@ server <- function(input, output) {
       output$unsuccessful.message <- renderText(("Sorry no Bonds match the high value winners this month"))
       
     }
+    
+ setProgress(1)})
     
     
   })
