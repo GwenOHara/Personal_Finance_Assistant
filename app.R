@@ -91,9 +91,7 @@ server <- function(input, output) {
   
   
   observeEvent(input$bondchecker,{
-withProgress(message = "Checking numbers", 
-            # style = "old",
-             {
+withProgress(message = "Checking numbers", style = "old",{
     bonds <- read.csv(paste0(file_path, "bonds.csv"))
     if(file.exists(paste0(file_path, 'last_time_bonds.csv'))){
       last.time.bonds <- read.csv(paste0(file_path, "last_time_bonds.csv"))
