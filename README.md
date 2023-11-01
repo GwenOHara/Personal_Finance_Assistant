@@ -6,4 +6,4 @@ Within repository of the app make a folder called data.
 Within the data folder create a 'bonds.csv' file with 3 columns of data.  The column headings should be from, to, owner.  
 from = list of the first premium bond number of each batch of premiums bonds held
 to = last premium bond number of each batch
-owner = name of person for each bacth
+owner = name of person for each batch
