@@ -8,9 +8,12 @@
 #
 
 library(shiny)
+library(shinyWidgets)
 library(openxlsx)
 library(data.table)
 library(DT)
+library(shinycssloaders)
+
 
 source("./Functions.R")
 
@@ -20,8 +23,17 @@ rv <- reactiveValues()
 
 
 
-# Define UI for application that draws a histogram
+# Define UI for application 
 ui <- fluidPage(
+  title = 'Premium Bond High Value Prize Checker',
+  
+  #Use a gradient in background
+  #setBackgroundColor("Teal"),
+  
+  setBackgroundColor(
+    color = c("#7B68EE", "#20B2AA"),
+    gradient = "radial"
+  ),
   
   # Application title
   titlePanel(htmlOutput('title')),
@@ -30,12 +42,12 @@ ui <- fluidPage(
               uiOutput('bond.check.button'),
               br(),
               br(),
-              span(textOutput('successful.message'), style = "color:green; font-size:20px"), 
-              span(textOutput('unsuccessful.message'), style = "color:red; font-size:20px"), 
+              span(textOutput('successful.message'), style = "color:yellow; font-size:20px"), 
+              span(textOutput('unsuccessful.message'), style = "color:orange; font-size:20px"), 
               DTOutput("prize.matches"),
               br(),
               br(),
-              DTOutput("pbtable")
+              withSpinner(DTOutput("pbtable"))
   )
   
 )
@@ -54,12 +66,7 @@ server <- function(input, output) {
   file_path <- paste0(getwd(),"/data/")
   file <- paste0(file_path, file_name)
   
-  
-  
-  
   options(scipen = 999)
-  #Add in a shiny warning if the newFile doesn't exist and stop
-  #Add in a Check if URL exists first and if not stop
   prem.bond.prize.data <- data.table(read.xlsx(newFile, startRow = 3))
   
   setnames(prem.bond.prize.data, 
@@ -67,14 +74,10 @@ server <- function(input, output) {
   
   prem.bond.prize.data[, `Date of Purchase` := format(as.POSIXct(as.Date(`Date of Purchase`, 
                                                                          origin = "1900-01-01")), '%b-%y')]
-  
   prem.bond.prize.data <- as.data.frame(prem.bond.prize.data)
-  
-  
   
   prem.bond.prize.data$Area <- as.factor(prem.bond.prize.data$Area)
   rv$prem.bonds.prize.data <- prem.bond.prize.data
-  
   
   output$pbtable <- renderDT(prem.bond.prize.data, 
                              filter = "top",
