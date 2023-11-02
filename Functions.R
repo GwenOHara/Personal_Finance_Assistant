@@ -23,3 +23,10 @@ MakeBondNumbers <- function(bonds, file_path){
   
   return(all.bonds)
 }
+
+CheckPrizeFileExists <- function(newFile) {
+  out <- tryCatch(read.xlsx(newFile, startRow = 3), 
+                  error = function(e)
+                    NULL)
+  return(out)
+}

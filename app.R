@@ -13,6 +13,8 @@ library(openxlsx)
 library(data.table)
 library(DT)
 library(shinycssloaders)
+library(shinythemes)
+library(shinyalert)
 
 
 source("./Functions.R")
@@ -26,13 +28,19 @@ rv <- reactiveValues()
 # Define UI for application 
 ui <- fluidPage(
   title = 'Premium Bond High Value Prize Checker',
-  
-  #Use a gradient in background
-  #setBackgroundColor("Teal"),
-  
+  theme = shinytheme("darkly"),
   setBackgroundColor(
     color = c("#7B68EE", "#20B2AA"),
     gradient = "radial"
+  ),
+  tags$head(
+    tags$style(
+      HTML(".shiny-notification {
+      position:fixed;
+      top:calc(15%);
+      left:calc(40%)
+      }")
+    )
   ),
   
   # Application title
@@ -66,6 +74,14 @@ server <- function(input, output) {
   file <- paste0(file_path, file_name)
   
   options(scipen = 999)
+  
+  #Check if the file existis on NS&I website 
+  check.data <- CheckPrizeFileExists(newFile = newFile)
+  if(is.null(check.data)){
+    shinyalert("File not found", "Current months file is not available on NS&I website", type = "error")
+  } else {
+  
+  #Perform checks of winners against your bond numbers  
   prem.bond.prize.data <- data.table(read.xlsx(newFile, startRow = 3))
   
   setnames(prem.bond.prize.data, 
@@ -91,7 +107,7 @@ server <- function(input, output) {
   
   
   observeEvent(input$bondchecker,{
-withProgress(message = "Checking numbers", style = "old",{
+    showNotification("Checking bond numbers", duration = 2,  type = "warning")
     bonds <- read.csv(paste0(file_path, "bonds.csv"))
     if(file.exists(paste0(file_path, 'last_time_bonds.csv'))){
       last.time.bonds <- read.csv(paste0(file_path, "last_time_bonds.csv"))
@@ -111,7 +127,6 @@ withProgress(message = "Checking numbers", style = "old",{
       
     }
     
-    incProgress(0.25)
     #test.data2 <- data.table(bonds = rv$prem.bonds.prize.data$`Bond Number`[1:3],
     #                        owner = "Graham")
     
@@ -142,12 +157,9 @@ withProgress(message = "Checking numbers", style = "old",{
       output$unsuccessful.message <- renderText(("Sorry no Bonds match the high value winners this month"))
       
     }
-    
- setProgress(1)})
-    
-    
   })
   
+  } # end of else after if check.data = NULL
   
 }
 
