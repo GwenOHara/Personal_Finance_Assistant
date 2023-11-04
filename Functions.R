@@ -12,16 +12,11 @@ CreateAllBonds <- function(first.bond, second.bond, owner){
 }
 
 
-MakeBondNumbers <- function(bonds, file_path){
+MakeBondNumbers <- function(bonds){
   all.bonds <- rbindlist(Map(CreateAllBonds,
                              first.bond = bonds$from, 
                              second.bond = bonds$to, 
                              owner = bonds$owner))
-  
-  write.csv(all.bonds, paste0(file_path, 'all_bonds.csv'))
-  write.csv(bonds, paste0(file_path, 'last_time_bonds.csv'))
-  
-  return(all.bonds)
 }
 
 CheckPrizeFileExists <- function(newFile) {
