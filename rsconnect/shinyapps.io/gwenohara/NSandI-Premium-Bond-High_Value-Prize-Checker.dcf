@@ -1,0 +1,13 @@
+name: NSandI-Premium-Bond-High_Value-Prize-Checker
+title: NSandI-Premium-Bond-High_Value-Prize-Checker
+username: gwenohara
+account: gwenohara
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10414914
+bundleId: 7888884
+url: https://gwenohara.shinyapps.io/NSandI-Premium-Bond-High_Value-Prize-Checker/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data/all_bonds.csv|data/bonds.csv|data/last_time_bonds.csv
