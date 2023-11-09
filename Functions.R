@@ -25,3 +25,9 @@ CheckPrizeFileExists <- function(newFile) {
                     NULL)
   return(out)
 }
+
+#Change a specific data table column of numbers to be formatted with a thousand separator
+ColNumThousandFormat <- function(dt, col){
+  dt[[col]] <- format(dt[[col]], big.mark = ",")
+  return(dt)
+}
