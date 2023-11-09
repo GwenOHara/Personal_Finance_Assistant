@@ -102,8 +102,8 @@ ui <- dashboardPage(
       # The second tab ===============================================================
       tabItem("Tab2",
               
-              "Here's a browser button. Use it when developing to pause the app and run ad-hoc code:",
-              actionButton("browser", "browser()")
+              # "Here's a browser button. Use it when developing to pause the app and run ad-hoc code:",
+              # actionButton("browser", "browser()")
               
       )
     )
