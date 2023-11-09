@@ -167,6 +167,6 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   
   # Admin ===============================================================
   
-  observeEvent({input$browser}, browser() )
+  #observeEvent({input$browser}, browser() )
   
 })
