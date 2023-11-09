@@ -45,13 +45,13 @@ ui <- dashboardPage(
       
       
       menuItem("High Value Prizes", tabName = 'Tab1', icon = icon("sack-dollar")),
-      uiOutput('style_tag')#,
+      uiOutput('style_tag'),
       # Check https://fontawesome.com/v5.3.1/icons?d=gallery&m=free for more valid icon names
       
-      # menuItem("Group 1", icon = icon("calendar-alt"), startExpanded = TRUE,
-      #          menuSubItem("Tab 2", tabName = "Tab2", icon = icon("folder-open")),
-      #          menuSubItem("Tab 3", tabName = "Tab3", icon = icon("chart-line"))
-      # )
+      menuItem("Stocks & Shares", icon = icon("calendar-alt"), startExpanded = TRUE,
+               menuSubItem("Share Prices", tabName = "Tab2", icon = icon("folder-open"))#,
+               #menuSubItem("Tab 3", tabName = "Tab3", icon = icon("chart-line"))
+      )
       
     )
     
@@ -101,6 +101,58 @@ ui <- dashboardPage(
       
       # The second tab ===============================================================
       tabItem("Tab2",
+              # A shiny app for monitoring a stock portfolio and comparing stock performance
+              # January 2021
+              # Peer Christensen
+              # hr.pchristensen@gmail.com
+              fluidPage(theme = shinytheme("cyborg"),
+                
+                # Title
+                titlePanel("Shares"),
+                
+                # Sidebar 
+                sidebarLayout(
+                  sidebarPanel(width = 3,
+                               
+                               # Let user pick stocks
+                               pickerInput(
+                                 inputId = "stocks",
+                                 label = h4("Stocks"),
+                                 choices = NULL,
+                                 # choices = c(
+                                 #   "Gravity"       = tickers[1],
+                                 #   "Sea Limited"   = tickers[2],
+                                 #   "Palantir"      = tickers[3],
+                                 #   "Unity"         = tickers[4],
+                                 #   "Cloudflare"    = tickers[5],
+                                 #   "Snowflake"     = tickers[6],
+                                 #   "MongoDB"       = tickers[7]),
+                                 # selected = tickers,   
+                                 options = list(`actions-box` = TRUE), 
+                                 multiple = T
+                               ),
+                               
+                               # Pick time period
+                               radioButtons("period", label = h4("Period"),
+                                            choices = list("1 month" = 1, "3 months" = 2, "6 months" = 3, "12 months" = 4, "YTD" = 5), 
+                                            selected = 4
+                               ),
+                               
+                               # Pick benchmark
+                               radioButtons("benchmark", label = h4("Benchmark"),
+                                            choices = list("SP500" = 1, "Nasdaq100" = 2,"None" = 3),
+                                            selected = 3)
+                  ),
+                  
+                  # Plot results
+                  mainPanel(
+                    plotlyOutput("plot",height=800)
+                  )
+                )
+              )
+              
+              
+              
               
               # "Here's a browser button. Use it when developing to pause the app and run ad-hoc code:",
               # actionButton("browser", "browser()")

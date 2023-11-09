@@ -15,5 +15,12 @@ library(data.table)
 library(shinythemes)
 library(shinyalert)
 
+#Stocks & Sahres packages
+library(tidyverse)
+library(tidyquant)
+library(BatchGetSymbols)
+library(glue)
+
 
 source('Functions.R')
+

@@ -27,33 +27,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   #   dashboardLabel(toupper(envir), status='info')
   # })
   
-  # Tab 1 ===============================================================
-  
-  
-  # # Example table
-  # output$Table1 <- renderReactable({
-  #   dt <- iris
-  #   
-  #   rv$Table1 <- dt  # Save to rv so the copybutton can work
-  #   reactable(dt)
-  # })
-  # 
-  # 
-  # # Example button
-  # observeEvent(input$DoSomething, {
-  #   
-  #   ShinyInfo("I have done something.")
-  #   
-  # })
-  # 
-  # 
-  # # Example graph
-  # output$Graph1 <- renderPlotly({
-  #   
-  #   plot_ly(data = mtcars) %>% 
-  #     add_markers(x = ~mpg, y = ~qsec, color = ~gear)
-  #   
-  # })
+  #### High Value Premium Bond Prize Checker #### ===============================================================
   
   
   # Determine the current month 
@@ -162,7 +136,104 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     
   } # end of else after if check.data = NULL
   
+  #### Share Price Tracker #### ===============================================================
+  ftse100 <- GetFTSE100Stocks(
+         do.cache = TRUE,
+         cache.folder = file.path(tempdir(), "BGS_Cache"))
   
+  sp500 <- GetSP500Stocks(
+    do.cache = TRUE,
+    cache.folder = file.path(tempdir(), "BGS_Cache"))
+  
+  benchmarks <- c("^NDX","^GSPC")
+  
+  ftse100tickers <- paste0(ftse100$tickers, ".L")
+  
+  rv$stocks <- NULL
+ 
+  
+  observeEvent(input$Tabs,{
+    if(input$Tabs == "Tab2"){
+      time.this({
+        rv$ftse100prices <- tq_get(ftse100tickers, 
+                         get  = "stock.prices",
+                         from = today()-months(12),
+                         to   = today(),
+                         complete_cases = F) %>%
+          select(symbol,date,close)
+        
+        rv$bench <- tq_get(benchmarks,
+                        get  = "stock.prices",
+                        from = today()-months(12),
+                        to   = today()) %>%
+          select(symbol,date,close)
+     }, "Getting share price information...", progress.bar = TRUE)
+      
+      updatePickerInput(session, 'stocks', choices = ftse100tickers, selected = "AV.L")
+      rv$stocks <- TRUE
+    }
+  })
+  
+  
+  # server logic based on user input
+  observeEvent(c(input$period,input$stocks,input$benchmark), {
+   req(!is.null(rv$stocks))
+    
+    
+    # prices <- prices %>%
+    #   filter(symbol %in% input$stocks)
+    prices.2 <- data.table(rv$ftse100prices)
+
+    prices <- prices.2[symbol %in% if(is.null(input$stocks))"AV.L" else input$stocks]
+
+    if (input$period == 1) {
+      prices <- prices[date  >= today()-months(1)]
+    }
+    
+    if (input$period == 2) {
+      prices <- prices[date  >= today()-months(3)]
+     }
+    
+    if (input$period == 3) {
+      prices <- prices[date  >= today()-months(6)]}
+    
+    if (input$period == 5) {
+      prices <- prices[year(date)  == year(today())]}
+   
+    bench2 <- data.table(rv$bench)
+    
+    if (input$benchmark == 1) {
+      bench <- bench2[symbol=="^GSPC" & date > min(prices$date)]
+     
+      prices <- rbind(prices,bench) }
+    
+    if (input$benchmark == 2) {
+      bench <- bench2[symbol=="^NDX" & date > min(prices$date)]
+      prices <- rbind(prices,bench) }
+    
+    # Create plot
+    output$plot <- renderPlotly({
+      print(
+        ggplotly(prices %>%
+                   group_by(symbol) %>%
+                   mutate(init_close = if_else(date == min(date),close,NA_real_)) %>%
+                   mutate(value = round(100 * close / sum(init_close,na.rm=T),1)) %>%
+                   ungroup() %>%
+                   ggplot(aes(date, value,colour = symbol)) +
+                   geom_line(size = 1, alpha = .9) +
+                   # uncomment the line below to show area under curves
+                   #geom_area(aes(fill=symbol),position="identity",alpha=.2) +
+                   theme_minimal(base_size=16) +
+                   theme(axis.title=element_blank(),
+                         plot.background = element_rect(fill = "black"),
+                         panel.background = element_rect(fill="black"),
+                         panel.grid = element_blank(),
+                         legend.text = element_text(colour="white"))
+        )
+      )
+    })
+  })
+
   
   
   # Admin ===============================================================
