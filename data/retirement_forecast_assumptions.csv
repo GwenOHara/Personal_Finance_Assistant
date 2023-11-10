@@ -1,2 +1,2 @@
-global_stocks,global_bonds,inflation
- 0.08 , 0.05 , 0.02 
+global_stocks,global_bonds,cash,inflation
+0.075,0.045,0.0455,0.0225

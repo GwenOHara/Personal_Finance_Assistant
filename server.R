@@ -297,6 +297,18 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   # Retirement Forecaster ===============================================================
   #Source of assumptions
   #https://advisors.vanguard.com/insights/article/series/market-perspectives#projected-returns
+  assumptions <- read.csv("https://raw.githubusercontent.com/GwenOHara/Personal_Finance_Assistant/retirement_planner/data/retirement_forecast_assumptions.csv")
+  r_stk <- assumptions$global_stocks
+  r_bond <- assumptions$global_bonds
+  r_infl <- assumptions$inflation
+  expected.returns  <- data.table(low = (90*r_stk+10*r_bond)/100, #0%-20% equities
+                                              low_med = (70*r_stk+30*r_bond)/100, #20%-40% equities 
+                                              med = (50*r_stk+50*r_bond)/100, #40%-60% equities
+                                              med_high = (30*r_stk+70*r_bond)/100, #60%-80% equities,
+                                              high = (10*r_stk+90*r_bond)/100) #80%-100% equities 
+  real.expected.returns <- expected.returns[, lapply(.SD, function(col) col - r_infl), 
+                                       .SDcols = colnames(expected.returns)]
+  
   
   # Admin ===============================================================
   
