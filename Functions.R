@@ -93,3 +93,19 @@ time.this <- function(code, message=NULL, progress.bar=FALSE, disable=NULL, noti
   }
 
 }
+
+
+
+# Popify an element with a delay (in ms)
+
+# Workaround from: https://stackoverflow.com/questions/47477237/delaying-and-expiring-a-shinybsbstooltip
+
+PopifyDelayed <- function(..., options=NULL, delay=1000){
+
+  delayopt <- list('xx')
+
+  names(delayopt) <- glue("delay': {'show':<delay>, 'hide':0}, 'xx", .open='<', .close='>')
+
+  popify(..., options = c(options, delayopt))
+
+}

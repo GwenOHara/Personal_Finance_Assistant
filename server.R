@@ -24,7 +24,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     
 
     if(input$Tabs=='Tab2')
-      return(tags$head(tags$style(HTML('.content-wrapper {background-color:grey;}'))))
+      return(tags$head(tags$style(HTML('.content-wrapper {background-color:a7d6d4;}'))))
   })
   
   
@@ -33,7 +33,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   #   dashboardLabel(toupper(envir), status='info')
   # })
   
-  #### High Value Premium Bond Prize Checker #### ===============================================================
+  # High Value Premium Bond Prize Checker #### ===============================================================
   
   
   # Determine the current month 
@@ -142,7 +142,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     
   } # end of else after if check.data = NULL
   
-  #### Share Price Tracker #### ===============================================================
+  # Share Price Tracker #### ===============================================================
   rv$ftse100 <- ftse100 <- GetFTSE100Stocks(
          do.cache = TRUE,
          cache.folder = file.path(tempdir(), "BGS_Cache"))
@@ -244,7 +244,6 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     
     # Create plot
     output$share.price.plot <- renderPlotly({
-      print(
         ggplotly(prices %>%
                    ggplot(aes(date, close,colour = symbol)) +
                    geom_line(size = 1, alpha = .9) +
@@ -257,7 +256,6 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
                          panel.grid = element_blank(),
                          legend.text = element_text(colour="white"))
         )
-      )
     })
     
 
@@ -265,7 +263,6 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
 
 
     output$relative.share.price.plot <- renderPlotly({
-      print(
         ggplotly(prices %>%
                    group_by(symbol) %>%
                    mutate(init_close = if_else(date == min(date),close,NA_real_)) %>%
@@ -281,7 +278,6 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
                          panel.background = element_rect(fill="black"),
                          panel.grid = element_blank(),
                          legend.text = element_text(colour="white"))
-        )
       )
     })
     
@@ -298,7 +294,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
                                          )
   })
 
-  
+  # Retirement Forecaster ===============================================================
   
   # Admin ===============================================================
   
