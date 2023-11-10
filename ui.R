@@ -1,7 +1,7 @@
 
 ui <- dashboardPage(
   
-  title = "Persoanl Finance Assistant",
+  title = "Personal Finance Assistant",
   skin = "blue",
   
   header = dashboardHeader(
