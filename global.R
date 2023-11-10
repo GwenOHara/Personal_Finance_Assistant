@@ -14,6 +14,14 @@ library(openxlsx)
 library(data.table)
 library(shinythemes)
 library(shinyalert)
+library(htmltools)
+
+#Stocks & Sahres packages
+library(tidyverse)
+library(tidyquant)
+library(BatchGetSymbols)
+library(glue)
 
 
 source('Functions.R')
+
