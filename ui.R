@@ -135,15 +135,15 @@ ui <- dashboardPage(
                                # Pick benchmark
                                radioButtons("benchmark", label = h4("Benchmark"),
                                             choices = list("SP500" = 1, "FTSE100" = 2,"None" = 3),
-                                            selected = 3),
-                               # Last share price for companies selected
-                               br(),
-                               h4("Latest closing price"),
-                               DTOutput('share.price.table')
+                                            selected = 3)
+                              
+                               
                   ),
                   
                   # Plot results
                   mainPanel(
+                    h4(tags$b('Last Closing Share Price')),
+                    DTOutput('share.price.table'),
                     h4(tags$b('Share Price')),
                     plotlyOutput("share.price.plot",height=800),
                     br(),
