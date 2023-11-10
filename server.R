@@ -1,3 +1,9 @@
+# A shiny app for:
+#Checking high value premium bond winners
+#monitoring a stock portfolio and comparing stock performance
+# Novermber 2023
+# Gwen O'Hara
+
 
 # Note what environment we're in (only used for a label by default; can be used to prevent overwriting live data from a test app)
 envir <- Sys.getenv('ENVIR')
