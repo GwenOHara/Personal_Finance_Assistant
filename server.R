@@ -295,6 +295,8 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   })
 
   # Retirement Forecaster ===============================================================
+  #Source of assumptions
+  #https://advisors.vanguard.com/insights/article/series/market-perspectives#projected-returns
   
   # Admin ===============================================================
   
