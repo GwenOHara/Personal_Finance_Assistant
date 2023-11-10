@@ -1,7 +1,7 @@
 
 ui <- dashboardPage(
   
-  title = "Premium Bond High Value Prize Checker",
+  title = "Persoanl Finance Assistant",
   skin = "blue",
   
   header = dashboardHeader(
