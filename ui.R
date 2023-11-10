@@ -77,6 +77,8 @@ ui <- dashboardPage(
       )
     ),
     
+    useShinyjs(),
+    
     tabItems(
       
       # The first tab ===============================================================
@@ -168,37 +170,107 @@ ui <- dashboardPage(
       
       tabItem("Tab3",
               # titlePanel(htmlOutput('title')),
-              box(width = 12, height = "auto",
-                  column(width = 3, numericInput("new1", "new1", value = NULL) %>% 
-                            PopifyDelayed("title1", "message")),
-                  column(width = 3, numericInput("new2", "new2", value = NULL) %>% 
-                           PopifyDelayed("title2", "message")),
-                  column(width = 3, numericInput("new3", "new3", value = NULL) %>% 
-                           PopifyDelayed("title3", "message")),
-                  column(width = 2, numericInput("new4", "new4", value = NULL) %>% 
-                           PopifyDelayed("title4", "message"))
+              box(title = 'Age',
+                  width = 12, height = "auto", background = 'light-blue',
+                  collapsible = TRUE,
+                  column(width = 3, numericInput("age", "Your Age", value = 40) %>% 
+                            PopifyDelayed("Age", "Enter your current age in years")),
+                  column(width = 3, numericInput("retirement.age", "Retirement Age", value = 55) %>% 
+                           PopifyDelayed("Retirement Age", "Enter the age you plan to retire")),
+                  column(width = 3, numericInputIcon("current.income", "What is your current annual income (before tax)", value = NULL,
+                                                 icon = icon("sterling-sign")) %>% 
+                           PopifyDelayed("title3", "Enter your cuurrent income so that target income can be calculated"))#,
+                  # column(width = 2, numericInput("new4", "new4", value = NULL) %>% 
+                  #          PopifyDelayed("title4", "message"))
               ),
-              box(width = 12, height = "auto",
+              
+             src="https://www.ons.gov.uk/visualisations/dvc221/index.html",
+              
+              box(title = 'Your Current Financial Position',
+                  width = 12, height = "auto", background = 'light-blue',
+                  collapsible = TRUE,
                   fluidRow(
-                  column(width = 3, numericInput("new5", "new1", value = NULL) %>% 
-                           PopifyDelayed("title5", "message")),
-                  column(width = 3, numericInput("new6", "new2", value = NULL) %>% 
-                           PopifyDelayed("title6", "message")),
-                  column(width = 3, numericInput("new7", "new3", value = NULL) %>% 
-                           PopifyDelayed("title7", "message")),
-                  column(width = 2, numericInput("new8", "new4", value = NULL) %>% 
-                           PopifyDelayed("title8", "message"))
+                    column(width = 11,
+                           checkboxInput('making.contributions', label = "Are you still making pension contributions?"))),
+                  fluidRow(
+                  column(width = 3, numericInputIcon("pension.pot", "Pensions", value = NULL,
+                                                     icon = icon("sterling-sign")) %>% 
+                           PopifyDelayed("Pensions Pots", "How much have you got saved up in your pension pots so far?")),
+                 
+                  # column(width = 3,
+                  #        shinyjs::hidden(numericInputIcon("salary", "Pre-tax Salary", value = NULL,
+                  #                                         icon = icon("sterling-sign")) %>% 
+                  #          PopifyDelayed("Salary", "enter your pre-tax salary"))),
+                  column(width = 3, 
+                         shinyjs::hidden(numericInputIcon(
+                    inputId = "contribution",
+                    label = "Your contribution",
+                    value = 10,
+                    icon = icon("percent")
+                  ) %>% 
+                           PopifyDelayed("Employee contribution", "Enter the % you are contributing"))),
+                  
+                  column(width = 2, 
+                         shinyjs::hidden(numericInputIcon(
+                           inputId = "empl.contribution",
+                           label = "Employer contribution",
+                           value = 8,
+                           icon = icon("percent")
+                         ) %>% 
+                           PopifyDelayed("Employee contribution", "Enter the % your employer contributes")))
                   ),
                   fluidRow(
-                    column(width = 3, numericInput("new9", "new1", value = NULL) %>% 
-                             PopifyDelayed("title9", "message")),
-                    column(width = 3, numericInput("new10", "new2", value = NULL) %>% 
-                             PopifyDelayed("title10", "message")),
-                    column(width = 3, numericInput("new11", "new3", value = NULL) %>% 
-                             PopifyDelayed("title11", "message")),
-                    column(width = 2, numericInput("new12", "new4", value = NULL) %>% 
-                             PopifyDelayed("title12", "message"))
+                    column(width = 3, numericInputIcon("cash.not.isa", "Value of Cash Savings", value = NULL,
+                                                       icon = icon("sterling-sign")) %>% 
+                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated"))#,
+                    # column(width = 3, numericInputIcon("lisa", "Value of LISA", value = NULL,
+                    #                                    icon = icon("sterling-sign")) %>% 
+                    #          PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                    # column(width = 3, numericInputIcon("s_and_s", "Value of Stocks & Shares ISAs", value = NULL,
+                    #                                    icon = icon("sterling-sign")) %>% 
+                    #          PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                    # column(width = 2, numericInputIcon("other", "Value of other investments", value = NULL,
+                    #                                    icon = icon("sterling-sign")) %>% 
+                    #          PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                  ),
+                  fluidRow(
+                    column(width = 3, numericInputIcon("cash", "Value of Cash ISAs", value = NULL,
+                                                       icon = icon("sterling-sign")) %>% 
+                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                    column(width = 3, numericInputIcon("lisa", "Value of Lifetime ISAs", value = NULL,
+                                                       icon = icon("sterling-sign")) %>% 
+                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                    column(width = 3, numericInputIcon("s_and_s", "Value of Stocks & Shares ISAs", value = NULL,
+                                                       icon = icon("sterling-sign")) %>% 
+                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                    column(width = 2, numericInputIcon("other", "Value of other investments", value = NULL,
+                                                       icon = icon("sterling-sign")) %>% 
+                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
                   )
+              ),
+              box(title = 'Your Assumptions',
+                  width = 12, height = "auto", background = 'light-blue',
+                  collapsible = TRUE,
+                  fluidRow(
+                    column(width = 11,
+                           checkboxInput('lump.sum.1', label = "Want cash Lump Sum at retirement?"))),
+                  column(width = 3, numericInput("state.pens", "State pesnions", value = 10600) %>% 
+                           PopifyDelayed("b", "Enter the age you plan to retire")),
+                  # column(width = 3, numericInputIcon("lisa", "Value of LISA", value = NULL,
+                  #                                    icon = icon("sterling-sign")) %>% 
+                  #          PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                   column(width = 2, 
+                          checkboxGroupButtons(
+                  inputId = "growth",
+                  label = "Growth Rate",
+                  choices = c("low", 
+                              "medium", "high"))
+              )# %>% 
+                  #          PopifyDelayed("title4", "message"))
+              ,
+              column(width = 3, sliderInput("lump.sum", "Select % of pension to take", 
+                                            min = 0, max = 25, value = 25) %>% 
+                       PopifyDelayed("a", "Enter your current age in years"))
               )
                   
                   # numericInput("new2", "new1", value = NULL) %>% 

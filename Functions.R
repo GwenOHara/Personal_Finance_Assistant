@@ -109,3 +109,18 @@ PopifyDelayed <- function(..., options=NULL, delay=1000){
   popify(..., options = c(options, delayopt))
 
 }
+
+ShowHideElement <- function(inputID, hide.flag, anim = TRUE){
+  fn <- if(hide.flag) hideElement else showElement
+  do.call(fn, list(inputID, anim=anim))
+}
+
+ShowHideElements <- function(inputIDs, hide.flag, anim = T){
+  lapply(inputIDs, ShowHideElement, hide.flag, anim)
+}
+
+ShowHideTabs <- function(inputID, tabs.to.hide, hide.flag){
+  req(length(hide.flag)>0)
+  fn <- if(hide.flag) hideTab else showTab
+  mapply(fn,target = tabs.to.hide, MoreArgs = list(inputID=inputID))
+}

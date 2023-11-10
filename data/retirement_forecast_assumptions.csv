@@ -1,2 +1,2 @@
-global_stocks,global_bonds,cash,inflation
-0.075,0.045,0.0455,0.0225
+global_stocks,global_bonds,cash,inflation,pension_fees,isa-fee,other_fees,taxband1,taxband2,taxband3,taxrate1,taxrate2,taxrate3,taxrate4
+0.075,0.045,0.0455,0.0225,0.005,0.005,0.005,12570,50270,125140,0,0.2,0.4,0.45

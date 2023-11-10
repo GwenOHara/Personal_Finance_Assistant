@@ -301,6 +301,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   r_stk <- assumptions$global_stocks
   r_bond <- assumptions$global_bonds
   r_infl <- assumptions$inflation
+  r_cash <- assumptions$cash
   expected.returns  <- data.table(low = (90*r_stk+10*r_bond)/100, #0%-20% equities
                                               low_med = (70*r_stk+30*r_bond)/100, #20%-40% equities 
                                               med = (50*r_stk+50*r_bond)/100, #40%-60% equities
@@ -309,6 +310,18 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   real.expected.returns <- expected.returns[, lapply(.SD, function(col) col - r_infl), 
                                        .SDcols = colnames(expected.returns)]
   
+  
+  # When calculating  what income is needed in retirement use Department of Work and Pensions guidelines of:
+  # Up to £14,300 -> 80% of current income
+  # £14,301 - £26,300 -> 70% of current income
+  # £26,301 - £37600 -> 70% of current income
+  # £37601 - £60000 -> 60% of current income
+  # Over £60000 -> 50% of current income
+  
+  observe(ShowHideElement('salary', input$making.contributions!=TRUE))
+  observe(ShowHideElement('contribution', input$making.contributions!=TRUE))
+  observe(ShowHideElement('empl.contribution', input$making.contributions!=TRUE))
+  observe(ShowHideElement('lump.sum', input$lump.sum.1!=TRUE))
   
   # Admin ===============================================================
   
