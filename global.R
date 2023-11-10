@@ -16,11 +16,14 @@ library(shinythemes)
 library(shinyalert)
 library(htmltools)
 
-#Stocks & Sahres packages
+#Stocks & Shares packages
 library(tidyverse)
 library(tidyquant)
 library(BatchGetSymbols)
 library(glue)
+
+# Retirement Forecasting
+
 
 
 source('Functions.R')

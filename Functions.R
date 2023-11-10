@@ -124,3 +124,21 @@ ShowHideTabs <- function(inputID, tabs.to.hide, hide.flag){
   fn <- if(hide.flag) hideTab else showTab
   mapply(fn,target = tabs.to.hide, MoreArgs = list(inputID=inputID))
 }
+
+
+#### Retirement Forecast ####
+
+Life_Expectancy <- function(age, gender, life_exp){
+current.year <- as.numeric(format(Sys.Date(), "%Y"))
+birth.year <- current.year - age
+life_exp2 <- melt(data.table(life_exp), id.vars = c('sex'))
+birth.year.check <- if(birth.year < min(as.numeric(colnames(life_exp[2:ncol(life_exp)])))){
+  min(as.numeric(colnames(life_exp[2:ncol(life_exp)])))
+} else {
+  birth.year
+}
+
+life.exp <- life_exp2[variable == birth.year.check, ][, year.left := value - age]
+out <- life.exp[ sex == gender]
+
+}

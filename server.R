@@ -297,6 +297,11 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   # Retirement Forecaster ===============================================================
   #Source of assumptions
   #https://advisors.vanguard.com/insights/article/series/market-perspectives#projected-returns
+  
+  #https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/lifeexpectancies/datasets/expectationoflifeprincipalprojectionunitedkingdom
+  
+  life_exp <- read.csv("https://raw.githubusercontent.com/GwenOHara/Personal_Finance_Assistant/retirement_planner/data/life_expectancy.csv",
+                       check.names = FALSE)
   assumptions <- read.csv("https://raw.githubusercontent.com/GwenOHara/Personal_Finance_Assistant/retirement_planner/data/retirement_forecast_assumptions.csv")
   r_stk <- assumptions$global_stocks
   r_bond <- assumptions$global_bonds
@@ -322,6 +327,19 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   observe(ShowHideElement('contribution', input$making.contributions!=TRUE))
   observe(ShowHideElement('empl.contribution', input$making.contributions!=TRUE))
   observe(ShowHideElement('lump.sum', input$lump.sum.1!=TRUE))
+  
+  
+  observeEvent({input$gender; input$age}, {
+    req(life_exp)
+    rv$life.exp.gend <- Life_Expectancy(age = input$age, 
+                                      gender = input$gender, 
+                                      life_exp = life_exp)
+  })
+  
+
+  #rv$retirement.forecast <- data.table( years = c(1:round(rv$life.exp$year.left,0)))  
+  
+  
   
   # Admin ===============================================================
   
