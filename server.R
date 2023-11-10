@@ -16,9 +16,9 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     if(input$Tabs=='Tab1')
       return(tags$head(tags$style(HTML('.content-wrapper {background-color:#a7d6d4;}'))))
     
-    # 
-    # if(input$Tabs=='page2')
-    #   return(tags$head(tags$style(HTML('.content-wrapper {background-color:red;}'))))
+
+    if(input$Tabs=='Tab2')
+      return(tags$head(tags$style(HTML('.content-wrapper {background-color:grey;}'))))
   })
   
   
@@ -137,39 +137,59 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   } # end of else after if check.data = NULL
   
   #### Share Price Tracker #### ===============================================================
-  ftse100 <- GetFTSE100Stocks(
+  rv$ftse100 <- ftse100 <- GetFTSE100Stocks(
          do.cache = TRUE,
          cache.folder = file.path(tempdir(), "BGS_Cache"))
   
-  sp500 <- GetSP500Stocks(
+  rv$sp500 <- sp500 <- GetSP500Stocks(
     do.cache = TRUE,
     cache.folder = file.path(tempdir(), "BGS_Cache"))
   
-  benchmarks <- c("^NDX","^GSPC")
-  
+  benchmarks <- c("^FTSE","^GSPC")
+
   ftse100tickers <- paste0(ftse100$tickers, ".L")
-  
+  sp500tickers.data <- data.table(sp500)[Tickers %in% c("AMZN", "AAPL", "MSFT", 
+                                                        "TSLA", "GOOGL", "GOOG", "NVDA", 
+                                                        "META", "BRK.B", "PFE", "KO" ,
+                                                        "UNH")]
+  sp500tickers <- sp500tickers.data$Tickers
+  sp500tickers <- gsub("[.]B",'-B',sp500tickers)
+  alltickers <- c(ftse100tickers, sp500tickers)
   rv$stocks <- NULL
- 
   
   observeEvent(input$Tabs,{
     if(input$Tabs == "Tab2"){
+      
       time.this({
-        rv$ftse100prices <- tq_get(ftse100tickers, 
+        rv$prices <- tq_get(alltickers, 
                          get  = "stock.prices",
-                         from = today()-months(12),
+                         from = today()-months(60),
                          to   = today(),
                          complete_cases = F) %>%
           select(symbol,date,close)
         
         rv$bench <- tq_get(benchmarks,
                         get  = "stock.prices",
-                        from = today()-months(12),
+                        from = today()-months(60),
                         to   = today()) %>%
           select(symbol,date,close)
-     }, "Getting share price information...", progress.bar = TRUE)
+     }, "Updating share price information...", progress.bar = TRUE)
       
-      updatePickerInput(session, 'stocks', choices = ftse100tickers, selected = "AV.L")
+      join.ftse.data <- data.table(company = rv$ftse100$company,
+                                    tickers = rv$ftse100$tickers,
+                                    sector = rv$ftse100$ICB.sector,
+                                   symbol = paste0(rv$ftse100$tickers, ".L"))
+      join.sp500.data <- data.table(company = rv$sp500$Company,
+                                   tickers = rv$sp500$Tickers,
+                                   sector = rv$sp500$GICS.Sector,
+                                   symbol = rv$sp500$Tickers)
+      join.data <- rbind(join.ftse.data, join.sp500.data)
+      
+      rv$graph.data <- join.data[data.table(rv$prices), on = .(symbol)]
+            
+      updatePickerInput(session, 'stocks', 
+                        choices = sort(unique(rv$graph.data$company)), 
+                        selected = "Aviva")
       rv$stocks <- TRUE
     }
   })
@@ -178,13 +198,12 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   # server logic based on user input
   observeEvent(c(input$period,input$stocks,input$benchmark), {
    req(!is.null(rv$stocks))
-    
-    
-    # prices <- prices %>%
-    #   filter(symbol %in% input$stocks)
-    prices.2 <- data.table(rv$ftse100prices)
+   
+    prices.2 <- data.table(symbol = rv$graph.data$company,
+                           date = rv$graph.data$date ,
+                           close = rv$graph.data$close)
 
-    prices <- prices.2[symbol %in% if(is.null(input$stocks))"AV.L" else input$stocks]
+    prices <- prices.2[symbol %in% if(is.null(input$stocks))"AVvia" else input$stocks]
 
     if (input$period == 1) {
       prices <- prices[date  >= today()-months(1)]
@@ -197,7 +216,13 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     if (input$period == 3) {
       prices <- prices[date  >= today()-months(6)]}
     
+    if (input$period == 4) {
+      prices <- prices[date  >= today()-months(12)]}
+    
     if (input$period == 5) {
+      prices <- prices[date  >= today()-months(60)]}
+    
+    if (input$period == 6) {
       prices <- prices[year(date)  == year(today())]}
    
     bench2 <- data.table(rv$bench)
@@ -208,11 +233,32 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
       prices <- rbind(prices,bench) }
     
     if (input$benchmark == 2) {
-      bench <- bench2[symbol=="^NDX" & date > min(prices$date)]
+      bench <- bench2[symbol=="^FTSE" & date > min(prices$date)]
       prices <- rbind(prices,bench) }
     
     # Create plot
-    output$plot <- renderPlotly({
+    output$share.price.plot <- renderPlotly({
+      print(
+        ggplotly(prices %>%
+                   ggplot(aes(date, close,colour = symbol)) +
+                   geom_line(size = 1, alpha = .9) +
+                   # uncomment the line below to show area under curves
+                   #geom_area(aes(fill=symbol),position="identity",alpha=.2) +
+                   theme_minimal(base_size=16) +
+                   theme(axis.title=element_blank(),
+                         plot.background = element_rect(fill = "black"),
+                         panel.background = element_rect(fill="black"),
+                         panel.grid = element_blank(),
+                         legend.text = element_text(colour="white"))
+        )
+      )
+    })
+    
+
+
+
+
+    output$relative.share.price.plot <- renderPlotly({
       print(
         ggplotly(prices %>%
                    group_by(symbol) %>%
@@ -232,6 +278,18 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
         )
       )
     })
+    
+    current.share.price <-
+      if( nrow(prices[date == today()]) == 0){
+        prices[date == today()-1]
+      } else{
+      prices[date == today()]}
+
+    current.share.price[ , close := format(round(current.share.price$close, 2), big.mark = ",")]
+    setnames(current.share.price, "symbol", "company")
+    
+    output$share.price.table <- renderDT(datatable(current.share.price, rownames =FALSE), 
+                                         )
   })
 
   

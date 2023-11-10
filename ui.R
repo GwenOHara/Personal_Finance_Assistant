@@ -101,6 +101,7 @@ ui <- dashboardPage(
       
       # The second tab ===============================================================
       tabItem("Tab2",
+              #This tab is adapted from the basic code from:
               # A shiny app for monitoring a stock portfolio and comparing stock performance
               # January 2021
               # Peer Christensen
@@ -117,36 +118,37 @@ ui <- dashboardPage(
                                # Let user pick stocks
                                pickerInput(
                                  inputId = "stocks",
-                                 label = h4("Stocks"),
+                                 label = h4("Shares"),
                                  choices = NULL,
-                                 # choices = c(
-                                 #   "Gravity"       = tickers[1],
-                                 #   "Sea Limited"   = tickers[2],
-                                 #   "Palantir"      = tickers[3],
-                                 #   "Unity"         = tickers[4],
-                                 #   "Cloudflare"    = tickers[5],
-                                 #   "Snowflake"     = tickers[6],
-                                 #   "MongoDB"       = tickers[7]),
-                                 # selected = tickers,   
-                                 options = list(`actions-box` = TRUE), 
+                                 options = list(`actions-box` = TRUE, 
+                                                liveSearch = TRUE), 
                                  multiple = T
                                ),
                                
                                # Pick time period
                                radioButtons("period", label = h4("Period"),
-                                            choices = list("1 month" = 1, "3 months" = 2, "6 months" = 3, "12 months" = 4, "YTD" = 5), 
+                                            choices = list("1 month" = 1, "3 months" = 2, "6 months" = 3, 
+                                                           "12 months" = 4, "5 years" = 5, "YTD" = 6), 
                                             selected = 4
                                ),
                                
                                # Pick benchmark
                                radioButtons("benchmark", label = h4("Benchmark"),
-                                            choices = list("SP500" = 1, "Nasdaq100" = 2,"None" = 3),
-                                            selected = 3)
+                                            choices = list("SP500" = 1, "FTSE100" = 2,"None" = 3),
+                                            selected = 3),
+                               # Last share price for companies selected
+                               br(),
+                               h4("Latest closing price"),
+                               DTOutput('share.price.table')
                   ),
                   
                   # Plot results
                   mainPanel(
-                    plotlyOutput("plot",height=800)
+                    h4(tags$b('Share Price')),
+                    plotlyOutput("share.price.plot",height=800),
+                    br(),
+                    h4(tags$b('Baselined to 100')),
+                    plotlyOutput("relative.share.price.plot",height=800)
                   )
                 )
               )
