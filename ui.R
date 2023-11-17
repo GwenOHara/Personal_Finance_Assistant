@@ -81,7 +81,7 @@ ui <- dashboardPage(
     
     tabItems(
       
-      # The first tab ===============================================================
+      # Premium Bonds ===============================================================
       tabItem("Tab1",
               titlePanel(htmlOutput('title')),
               mainPanel(  br(),
@@ -89,24 +89,20 @@ ui <- dashboardPage(
                           fluidRow(
                             column(6, 
                                    uiOutput('file.input')),
-                            column(4,
-                                   uiOutput('file.input.example'))),
-                          
-                          uiOutput('bond.check.button'),
-                          bsModal("modalExample", "Bond data file example", "data.example", size = "large",
-                                  DTOutput("csv.data")),
-                          br(),
+                            div(style = "margin-top:25px;",
+                            uiOutput('bond.download.button'))
+                            ),
+                           uiOutput('bond.check.button'),
                           br(),
                           span(textOutput('successful.message'), style = "color:blue; font-size:20px"),
                           span(textOutput('unsuccessful.message'), style = "color:black; font-size:20px"),
                           DTOutput("prize.matches"),
                           br(),
-                          br(),
                           withSpinner(DTOutput("pbtable"))
               )
       ),
       
-      # The second tab ===============================================================
+      # Share Prices ===============================================================
       tabItem("Tab2",
               #This tab is adapted from the basic code from:
               # A shiny app for monitoring a stock portfolio and comparing stock performance
@@ -165,7 +161,7 @@ ui <- dashboardPage(
               
       ),
       
-      # The third tab ===============================================================
+      # Retirement Planning ===============================================================
       
       
       tabItem("Tab3",
@@ -198,7 +194,7 @@ ui <- dashboardPage(
                                                      icon = icon("sterling-sign")) %>% 
                            PopifyDelayed("Pensions Pots", "How much have you got saved up in your pension pots so far?")),
                  
-                column(width = 3, 
+                column(width = 2, 
                          shinyjs::hidden(numericInputIcon(
                     inputId = "contribution",
                     label = "Your contribution",
@@ -214,7 +210,15 @@ ui <- dashboardPage(
                            value = 8,
                            icon = icon("percent")
                          ) %>% 
-                           PopifyDelayed("Employee contribution", "Enter the % your employer contributes")))
+                           PopifyDelayed("Employee contribution", "Enter the % your employer contributes"))),
+                column(width = 2, 
+                       shinyjs::hidden(numericInputIcon(
+                         inputId = "pens.contr.inc",
+                         label = "Annual Change In Contribution",
+                         value = 1,
+                         icon = icon("percent")
+                       ) %>% 
+                         PopifyDelayed("Annual increase", "Assumed increase in contributions each year due to pay rise etc.")))
                   ),
                   fluidRow(
                     column(width = 3, numericInputIcon("cash.not.isa", "Value of Cash Savings", value = NULL,
@@ -224,17 +228,31 @@ ui <- dashboardPage(
                   fluidRow(
                     column(width = 3, numericInputIcon("cash", "Value of Cash ISAs", value = NULL,
                                                        icon = icon("sterling-sign")) %>% 
-                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                             PopifyDelayed("c", "Enter your current income so that target income can be calculated")),
                     column(width = 3, numericInputIcon("lisa", "Value of Lifetime ISAs", value = NULL,
                                                        icon = icon("sterling-sign")) %>% 
-                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                             PopifyDelayed("c", "Enter your current income so that target income can be calculated")),
                     column(width = 3, numericInputIcon("s_and_s", "Value of Stocks & Shares ISAs", value = NULL,
                                                        icon = icon("sterling-sign")) %>% 
-                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
+                             PopifyDelayed("c", "Enter your current income so that target income can be calculated")),
                     column(width = 2, numericInputIcon("other", "Value of other investments", value = NULL,
                                                        icon = icon("sterling-sign")) %>% 
-                             PopifyDelayed("c", "Enter your cuurrent income so that target income can be calculated")),
-                  )
+                             PopifyDelayed("c", "Enter your current income so that target income can be calculated")),
+                  ),
+                fluidRow(
+                  column(width = 3, numericInputIcon("con.cash", "Annual savings Cash ISAs", value = NULL,
+                                                     icon = icon("sterling-sign")) %>% 
+                           PopifyDelayed("c", "Enter your expected annual savings")),
+                  column(width = 3, numericInputIcon("con.lisa", "Annual savings Lifetime ISAs", value = NULL,
+                                                     icon = icon("sterling-sign")) %>% 
+                           PopifyDelayed("c", "Enter your expected annual savings")),
+                  column(width = 3, numericInputIcon("con.s_and_s", "Annual savings Stocks & Shares ISAs", value = NULL,
+                                                     icon = icon("sterling-sign")) %>% 
+                           PopifyDelayed("c", "Enter your expected annual savings")),
+                  column(width = 3, numericInputIcon("con.other", "Annual savings Other", value = NULL,
+                                                     icon = icon("sterling-sign")) %>% 
+                           PopifyDelayed("c", "Enter your expected annual savings"))
+                )
               ),
               box(title = 'Your Assumptions',
                   width = 12, height = "auto", background = 'light-blue',
@@ -242,47 +260,41 @@ ui <- dashboardPage(
                   fluidRow(
                     column(width = 11,
                            checkboxInput('lump.sum.1', label = "Want cash Lump Sum at retirement?"))),
-                  column(width = 3, numericInput("state.pens", "State pesnions", value = 10600) %>% 
+                  column(width = 3, numericInput("state.pens", "State pensions", value = 10600) %>% 
                            PopifyDelayed("b", "Enter the age you plan to retire")),
-                  column(width = 3, numericInputIcon("inflation", "inflation Rate", value = NULL,
-                                                            icon = icon("percent")) %>% 
-                                  PopifyDelayed("c", "Enter the expected long-term inlfation rate")),
+                  column(width = 3, numericInputIcon("inflation", "Inflation Rate", value = NULL,
+                                                     step = 0.01,
+                                                     icon = icon("percent")) %>% 
+                                  PopifyDelayed("c", "Enter the expected long-term inflation rate")),
                    column(width = 2, 
                           radioGroupButtons(
-                  inputId = "growth",
-                  label = "Growth Rate",
+                  inputId = "pen.growth",
+                  label = "Pension Growth Rate",
                   choices = c("low", "low-medium", 
-                              "medium", "medium-high", "high"))
+                              "medium", "medium-high", "high"),
+                  selected = "medium-high")
+                  ),
+                  column(width = 2, 
+                         radioGroupButtons(
+                           inputId = "sav.growth",
+                           label = "Savings Growth Rate",
+                           choices = c("low", "low-medium", 
+                                       "medium", "medium-high", "high"))
+                  
               )# %>% 
                   #          PopifyDelayed("title4", "message"))
               ,
               column(width = 3, sliderInput("lump.sum", "Select % of pension to take", 
                                             min = 0, max = 25, value = 25) %>% 
                        PopifyDelayed("a", "Enter your current age in years"))
+              ),
+              fluidRow(
+                box(width = 12,
+                    div (style = 'overflow-y:hidden; height:calc(100vh-300px_; width:100%',
+                         plotlyOutput('pension.graph')))
               )
               
                   
-             
-              # mainPanel(  br(),
-              #             br(),
-              #             fluidRow(
-              #               column(6,
-              #                      uiOutput('file.input')),
-              #               column(4,
-              #                      uiOutput('file.input.example'))),
-              # 
-              #             uiOutput('bond.check.button'),
-              #             bsModal("modalExample", "Bond data file example", "data.example", size = "large",
-              #                     DTOutput("csv.data")),
-              #             br(),
-              #             br(),
-              #             span(textOutput('successful.message'), style = "color:yellow; font-size:20px"),
-              #             span(textOutput('unsuccessful.message'), style = "color:orange; font-size:20px"),
-              #             DTOutput("prize.matches"),
-              #             br(),
-              #             br(),
-              #             withSpinner(DTOutput("pbtable"))
-              # )
       )
       
     )

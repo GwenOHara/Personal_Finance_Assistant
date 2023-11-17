@@ -16,8 +16,6 @@ ksp500 <- GetSP500Stocks(
   do.cache = TRUE,
   cache.folder = file.path(tempdir(), "BGS_Cache"))
 
-
-
 kftse100tickers <- paste0(kftse100$tickers, ".L")
 ksp500tickers.data <- data.table(ksp500)[Tickers %in% c("AMZN", "AAPL", "MSFT", 
                                                        "TSLA", "GOOGL", "GOOG", "NVDA", 
@@ -33,12 +31,13 @@ kassumptions <- read.csv("https://raw.githubusercontent.com/GwenOHara/Personal_F
 kr_stk <- kassumptions$global_stocks
 kr_bond <- kassumptions$global_bonds
 kr_infl <- kassumptions$inflation
+kr_incr <- 1
 kr_cash <- kassumptions$cash
-kexpected.returns  <- data.table(low = (90*kr_stk+10*kr_bond)/100, #0%-20% equities
-                                low_med = (70*kr_stk+30*kr_bond)/100, #20%-40% equities 
+kexpected.returns  <- data.table(high = (90*kr_stk+10*kr_bond)/100, #0%-20% equities
+                                 'medium-high' = (70*kr_stk+30*kr_bond)/100, #20%-40% equities 
                                 med = (50*kr_stk+50*kr_bond)/100, #40%-60% equities
-                                med_high = (30*kr_stk+70*kr_bond)/100, #60%-80% equities,
-                                high = (10*kr_stk+90*kr_bond)/100) #80%-100% equities 
+                                'low-medium' = (30*kr_stk+70*kr_bond)/100, #60%-80% equities,
+                                low = (10*kr_stk+90*kr_bond)/100) #80%-100% equities 
 kreal.expected.returns <- kexpected.returns[, lapply(.SD, function(col) col - kr_infl), 
                                           .SDcols = colnames(kexpected.returns)]
 
@@ -54,77 +53,44 @@ ColNumThousandFormat <- function(dt, col){
 # Run some code and time it; print a message along with the time
 time.this <- function(code, message=NULL, progress.bar=FALSE, disable=NULL, notification.msg=NULL){
   require(crayon)
-
   if(!is.null(disable)) shiny.disable_all(disable)
-
   cat(message) # Write the label to the R console
 
   tm <- system.time({  # Show a progress bar showing the task has started
-
     if(progress.bar)  withProgress(try({ val <- eval.parent(code, n=2) }), message=message)
-
     else  try({ val <- eval.parent(code, n=2) })
-
   }, gcFirst=FALSE)
 
   tms <- tm['elapsed'][[1]]
-
   tm_string <- format( tms, digits=3 )
 
- 
-
   if(!is.null(message)){  # Write the time taken to the R console
-
     if(tms<0.1){ fmt <- crayon::silver
-
     } else if(tms>0.5){ fmt <- crayon::bold
-
     } else { fmt <- crayon::reset }
 
-   
-
-    cat("", fmt(glue("({tm_string}s)\n\n")))
-
-  }
-
- 
+        cat("", fmt(glue("({tm_string}s)\n\n")))
+        }
 
   if(!is.null(notification.msg)){  # Show a shiny notification when finished
-
     showNotification(paste0(notification.msg, " in ", tm_string, " seconds."),
-
                      closeButton=FALSE, type='message')
-
   }
-
- 
 
   if(!is.null(disable)) shiny.enable_all(disable)
-
- 
-
   if(exists("val")){ # Return the output if it exists
-
     return(val)
-
   }
-
 }
-
-
 
 # Popify an element with a delay (in ms)
 
 # Workaround from: https://stackoverflow.com/questions/47477237/delaying-and-expiring-a-shinybsbstooltip
 
 PopifyDelayed <- function(..., options=NULL, delay=1000){
-
   delayopt <- list('xx')
-
   names(delayopt) <- glue("delay': {'show':<delay>, 'hide':0}, 'xx", .open='<', .close='>')
-
   popify(..., options = c(options, delayopt))
-
 }
 
 ShowHideElement <- function(inputID, hide.flag, anim = TRUE){
@@ -354,3 +320,37 @@ life.exp[, years.to.max := 120 - age][, value := round(value,0)]
 out <- life.exp[ sex == gender]
 
 }
+
+
+CompoundRateList <- function(list.values, rate, rows){
+  for(i in 1:rows){  
+    #list.values <- c(list.values, tail(list.values, 1)* cumprod(1+rate))
+    #list.values <- c(list.values, tail(list.values, 1)* (1+rate)^i)
+    list.values <- c(list.values, tail(list.values, 1)*(1+rate))
+  }
+  list.values
+}
+
+CompoundRateListInfl <- function(list.values, rate, rows){
+  for(i in 1:rows){  
+    list.values <- c(list.values, (1+rate)^i)
+  }
+  list.values
+}
+
+PCont <- function(age, retirement.age, total.pens.con, new.pen.rate){
+  if(age <= retirement.age){
+    total.pens.con * new.pen.rate
+  } else {
+    0
+  }
+}
+
+PensionTotalList <- function(list.values, rate, new.contr, rows){
+  for(i in 1:rows){  
+   list.values <- c(list.values, tail(list.values, 1)*rate + new.contr[i+1] )
+  }
+  list.values
+}
+
+
