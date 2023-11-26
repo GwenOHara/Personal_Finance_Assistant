@@ -35,7 +35,7 @@ kr_incr <- 1
 kr_cash <- kassumptions$cash
 kexpected.returns  <- data.table(high = (90*kr_stk+10*kr_bond)/100, #0%-20% equities
                                  'medium-high' = (70*kr_stk+30*kr_bond)/100, #20%-40% equities 
-                                med = (50*kr_stk+50*kr_bond)/100, #40%-60% equities
+                                medium = (50*kr_stk+50*kr_bond)/100, #40%-60% equities
                                 'low-medium' = (30*kr_stk+70*kr_bond)/100, #60%-80% equities,
                                 low = (10*kr_stk+90*kr_bond)/100) #80%-100% equities 
 kreal.expected.returns <- kexpected.returns[, lapply(.SD, function(col) col - kr_infl), 
@@ -305,6 +305,19 @@ SharePriceTable <- function(prices){
 }
 
 #### Retirement Forecast ####
+
+#Updating the UI based on input config
+RetirementSettingUI <- function(id, type, session, value){
+  if(type == 'numericInput')
+  {updateNumericInput(session = session, inputId = id, value = value)}
+  if(type == 'numericInputIcon')
+  {updateNumericInputIcon(session = session, inputId = id, value = value)}  
+  if(type == 'checkboxInput')
+  {updateCheckboxInput(session = session, inputId = id, value = value)}
+  if(type == 'radioGroupButtons')
+  {updateRadioGroupButtons(session = session, inputId = id, selected = value)}
+}
+
 
 Life_Expectancy <- function(age, gender, life_exp, life_exp2){
 current.year <- as.numeric(format(Sys.Date(), "%Y"))

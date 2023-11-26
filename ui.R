@@ -165,20 +165,26 @@ ui <- dashboardPage(
       
       
       tabItem("Tab3",
+              fluidRow(
+                column(6, 
+                       uiOutput('file.input.ret')),
+                div(style = "margin-top:25px;",
+                    uiOutput('download.button.ret'))
+              ),
               # titlePanel(htmlOutput('title')),
               box(title = 'About You',
                   width = 12, height = "auto", background = 'light-blue',
                   collapsible = TRUE,
-                  column(width = 3, numericInput("age", "Your Age", value = 40) %>% 
+                  column(width = 1, numericInput("age", "Your Age", value = 40) %>% 
                             PopifyDelayed("Age", "Enter your current age in years")),
                   column(width = 2, 
                          radioGroupButtons(
                            inputId = "gender",
                            label = "Gender",
                            choices = c("Female", "Male"))),
-                  column(width = 3, numericInput("retirement.age", "Retirement Age", value = 55) %>% 
+                  column(width = 1, numericInput("retirement.age", "Retirement Age", value = 55) %>% 
                            PopifyDelayed("Retirement Age", "Enter the age you plan to retire")),
-                  column(width = 3, numericInputIcon("current.income", "What is your current annual income (before tax)", value = NULL,
+                  column(width = 2, numericInputIcon("current.income", "What is your current annual income (before tax)", value = NULL,
                                                  icon = icon("sterling-sign")) %>% 
                            PopifyDelayed("title3", "Enter your cuurrent income so that target income can be calculated"))#,
               ),
@@ -260,7 +266,8 @@ ui <- dashboardPage(
                   fluidRow(
                     column(width = 11,
                            checkboxInput('lump.sum.1', label = "Want cash Lump Sum at retirement?"))),
-                  column(width = 3, numericInput("state.pens", "State pensions", value = 10600) %>% 
+                  fluidRow(
+                    column(width = 3, numericInput("state.pens", "State pensions", value = 10600) %>% 
                            PopifyDelayed("b", "Enter the age you plan to retire")),
                   column(width = 3, numericInputIcon("inflation", "Inflation Rate", value = NULL,
                                                      step = 0.01,
@@ -281,17 +288,29 @@ ui <- dashboardPage(
                            choices = c("low", "low-medium", 
                                        "medium", "medium-high", "high"))
                   
+              )
               )# %>% 
                   #          PopifyDelayed("title4", "message"))
               ,
+              fluidRow(
+                column(width = 2, numericInput("take.pens.age", "Age Start Taking Pension", value = 55) %>% 
+                         PopifyDelayed("Start Pension Age", "Enter the age you plan to start taking your pwersonal pension")),
+                column(width = 2, numericInput("inv.change", "Years before retirement to move investments to lower risk", value = 5) %>% 
+                         PopifyDelayed("Investment Change", "Enter how many years before taking pension you want to move your investments to low risk investments")),
+                switchInput('pension.option', label = 'Pension Type', onLabel = 'Drawdown' , offLabel = 'Annuity')
+              ),
+              
               column(width = 3, sliderInput("lump.sum", "Select % of pension to take", 
                                             min = 0, max = 25, value = 25) %>% 
                        PopifyDelayed("a", "Enter your current age in years"))
               ),
+              
               fluidRow(
                 box(width = 12,
                     div (style = 'overflow-y:hidden; height:calc(100vh-300px_; width:100%',
-                         plotlyOutput('pension.graph')))
+                         plotlyOutput('pension.graph'),
+                         br(),
+                         plotlyOutput('annuity.pie.graph')))
               )
               
                   

@@ -19,7 +19,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   output$style_tag <- renderUI({
     if(input$Tabs=='Tab1')
       return(tags$head(tags$style(HTML('.content-wrapper {background-color:#a7d6d4;}'))))
-
+    
     if(input$Tabs=='Tab2')
       return(tags$head(tags$style(HTML('.content-wrapper {background-color:a7d6d4;}'))))
   })
@@ -34,7 +34,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   
   output$title <- renderText(paste("NS&I Premium Bonds High Value Prize Checker", format(Sys.Date(), "%B %Y")))
   
- 
+  
   #Check if the file exists on NS&I website 
   check.data <- CheckPrizeFileExists(newFile = knewFile)
   
@@ -78,46 +78,42 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
                 accept = c(
                   ".csv"))) 
     
-    output$csv.data <- DT::renderDT(
-      datatable(data.table(from = c('bond number 1','bond number 3'),
-                           to = c('bond number 2','bond number 4'),
-                           owner = c('name i.e. pingu', 'name i.e. gromit')), rownames = FALSE))
     
   } # end of else after if check.data = NULL
   
   
-    # observeEvent(input$data.example, {
-    #   toggleModal(session, 'modalExample', toggle = "open")
-    # })
+  # observeEvent(input$data.example, {
+  #   toggleModal(session, 'modalExample', toggle = "open")
+  # })
+  
+  observeEvent(input$bondchecker,{
+    if(is.null(input$premium.bonds)) 
+    {shinyalert("No Premium Bonds loaded to check", "Please upload your csv file containing your bond numbers", type = "warning")}
     
-    observeEvent(input$bondchecker,{
-      if(is.null(input$premium.bonds)) 
-      {shinyalert("No Premium Bonds loaded to check", "Please upload your csv file containing your bond numbers", type = "warning")}
-      
-      req(input$premium.bonds)
-      showNotification("Checking bond numbers", duration = 2,  type = "warning")
-      
-      bonds <- read.csv(input$premium.bonds$datapath)
-      all.bonds <- MakeBondNumbers(bonds = bonds)
-      
-      if(any(rv$prem.bonds.prize.data$`Bond Number` %in% all.bonds$bonds)){
-        filter.match.table <- MakeMatchTable(output = output, 
-                                             prem.bonds.prize.data = rv$prem.bonds.prize.data, 
-                                             all.bonds = all.bonds)
-        
-        output$prize.matches <- renderDT(datatable(filter.match.table, rownames =FALSE), 
-                                         filter = "top",
-                                         options = list(
-                                           pageLength = 1000,
-                                           pagination = TRUE
-                                         ))
-        
-      } else {
-        output$unsuccessful.message <- renderText(("Sorry no Bonds match the high value winners this month"))
-        
-      }
-    })
+    req(input$premium.bonds)
+    showNotification("Checking bond numbers", duration = 2,  type = "warning")
     
+    bonds <- read.csv(input$premium.bonds$datapath)
+    all.bonds <- MakeBondNumbers(bonds = bonds)
+    
+    if(any(rv$prem.bonds.prize.data$`Bond Number` %in% all.bonds$bonds)){
+      filter.match.table <- MakeMatchTable(output = output, 
+                                           prem.bonds.prize.data = rv$prem.bonds.prize.data, 
+                                           all.bonds = all.bonds)
+      
+      output$prize.matches <- renderDT(datatable(filter.match.table, rownames =FALSE), 
+                                       filter = "top",
+                                       options = list(
+                                         pageLength = 1000,
+                                         pagination = TRUE
+                                       ))
+      
+    } else {
+      output$unsuccessful.message <- renderText(("Sorry no Bonds match the high value winners this month"))
+      
+    }
+  })
+  
   #} 
   
   # Share Price Tracker #### ===============================================================
@@ -125,8 +121,8 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   rv$ftse100 <- kftse100
   rv$sp500 <- ksp500 
   rv$stocks <- NULL
- 
-   observe({
+  
+  observe({
     req(kftse100tickers, ksp500tickers.data)
     rv$alltickers <- GetAllTickers(kftse100tickers, ksp500tickers.data)
   })
@@ -136,23 +132,23 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   })
   
   observeEvent(c(input$period,input$stocks,input$benchmark), {
-   req(!is.null(rv$stocks))
+    req(!is.null(rv$stocks))
     prices <- Shares_Calculate_Data_For_Graphs(rv, input)
-
-  # Create plot
+    
+    # Create plot
     output$share.price.plot <- renderPlotly({
       SharePriceGraph1(prices)
     })
     
     output$relative.share.price.plot <- renderPlotly({
       SharePriceGraph2(prices)
-      })
+    })
     
     output$share.price.table <- renderDT(datatable(SharePriceTable(prices), 
                                                    rownames =FALSE), 
-                                         )
+    )
   })
-
+  
   # Retirement Forecaster ===============================================================
   #Source of assumptions
   #https://advisors.vanguard.com/insights/article/series/market-perspectives#projected-returns
@@ -172,37 +168,107 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   observe(ShowHideElement('empl.contribution', input$making.contributions!=TRUE))
   observe(ShowHideElement('pens.contr.inc', input$making.contributions!=TRUE))
   observe(ShowHideElement('lump.sum', input$lump.sum.1!=TRUE))
+  observe(ShowHideElement('annuity.pie.graph', input$lump.sum.1!=TRUE))
   
   observe({
-  req(kr_infl)
-  updateNumericInputIcon(session, 'inflation', "Inflation Rate", value = kr_infl*100,
-                         step = 0.01,
-                         icon = icon("percent"))
+    req(kr_infl)
+    updateNumericInputIcon(session, 'inflation', "Inflation Rate", value = kr_infl*100,
+                           step = 0.01,
+                           icon = icon("percent"))
   })
+  
+  output$file.input.ret <- renderUI(
+    fileInput("ret.file.preferences", "Upload CSV file with your setting preferences",
+              accept = c(
+                ".csv"))) 
+  
+  observeEvent(input$ret.file.preferences, {
+    
+    settings <- read.csv(input$ret.file.preferences$datapath, header = TRUE, stringsAsFactors = FALSE)
+    
+    
+    Map(RetirementSettingUI,
+        id = settings$app.id,
+        type = settings$input.type,
+        value = settings$setting,
+        MoreArgs = list(session = session))
+    
+    
+  })
+  
+  output$download.button.ret <- renderUI(
+    downloadButton(outputId = 'retirement_download', 
+                   label = 'Download example file'))
+  
+  #Example retirement setting csv file
+  output$retirement_download <- downloadHandler(
+    filename = "retirement.forecast.csv",
+    content = function(file){
+      write.csv(data.table(app.id = c('age', 'gender', 'retirement.age',
+                                      'current.income', 'pension.pot',
+                                      'making.contributions', 'contribution',
+                                      'empl.contribution', 'pen.growth', 'take.pens.age',
+                                      'inv.change'),
+                           input.type = c('numericInput',
+                                          'radioGroupButtons',
+                                          'numericInput',
+                                          'numericInputIcon',
+                                          'numericInputIcon',
+                                          'checkboxInput',
+                                          'numericInputIcon',
+                                          'numericInputIcon',
+                                          'radioGroupButtons',
+                                          'numericInputIcon',
+                                          'numericInputIcon'),
+                           info = c('Age',
+                                    'Gender',
+                                    'Retirement Age',
+                                    'Annual Income',
+                                    'Pension',
+                                    'Pension Contributions being made?',
+                                    'Your Contribution',
+                                    'Employers Contribution',
+                                    'Pension Growth Rate',
+                                    'Age start personal pension',
+                                    'Years before retirement to move to low risk invesments'),
+                           setting = c('35',
+                                       'Female',
+                                       '68',
+                                       '30000',
+                                       '100000',
+                                       'TRUE',
+                                       '8',
+                                       '4',
+                                       'medium',
+                                       '60',
+                                       '5')), file, row.names = FALSE)})
   
   
   observeEvent({input$gender; input$age}, {
     req(klife_exp, klife_exp2)
     rv$life.exp.gend <- Life_Expectancy(age = input$age, 
-                                      gender = input$gender, 
-                                      life_exp = klife_exp,
-                                      life_exp2 = klife_exp2)
+                                        gender = input$gender, 
+                                        life_exp = klife_exp,
+                                        life_exp2 = klife_exp2)
   })
   
-
+  
   observeEvent({input$current.income; input$pension.pot; input$contribution; 
     input$empl.contribution; input$cash.not.isa; input$cash; input$lisa; input$s_and_s;
     input$other; input$inflation; input$retirement.age; input$sav.growth; input$pen.growth;
-    input$making.contributions},{
+    input$making.contributions; input$take.pens.age; input$inv.change; input$pension.option;
+    input$lump.sum; input$lump.sum.1},{
       req(rv$life.exp.gend,input$age>1)
       
-
-      
+      if(!is.na(input$inflation)){
+        #Adjust expected returns for inflation and platform fees(0.5%)
+        kexpected.returns <- kexpected.returns - input$inflation/100 - 0.005
+      }      
       #Make the data based on inputs
       rv$retirement.data <- data.table(age = c(input$age:110))
       list.comp.infl <- CompoundRateListInfl(list.values = if(is.na(input$inflation))kr_infl else input$inflation/100, 
-                                         rate = if(is.na(input$inflation))kr_infl else input$inflation/100, 
-                                         rows = nrow(rv$retirement.data))-1
+                                             rate = if(is.na(input$inflation))kr_infl else input$inflation/100, 
+                                             rows = nrow(rv$retirement.data))-1
       
       rv$retirement.data[ , compound.inflation := list.comp.infl[2:length(list.comp.infl)]]
       rv$retirement.data[, pension.pot := if(is.na(input$pension.pot))0 else input$pension.pot]
@@ -211,60 +277,73 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
       rv$retirement.data[, lisa := if(is.na(input$lisa))0 else input$lisa]
       rv$retirement.data[, ss.isa := if(is.na(input$s_and_s))0 else input$s_and_s]
       rv$retirement.data[, other := if(is.na(input$other))0 else input$other]
-
+      
       rv$retirement.data[, pens.contribution := if(input$making.contributions == TRUE){
-         if(is.na(input$current.income))0 else  {
-        if(is.na(input$contribution))0 else input$contribution/100*input$current.income}
-        }else{0}]
+        if(is.na(input$current.income))0 else  {
+          if(is.na(input$contribution))0 else input$contribution/100*input$current.income
+          
+          #TODO do something with input$pens.contr.inc
+          
+        }
+      }else{0}]
       rv$retirement.data[, employer.contribution := if(input$making.contributions == TRUE){
-                           if(is.na(input$current.income))0 else  {
-        if(is.na(input$empl.contribution))0 else input$empl.contribution/100*input$current.income}
+        if(is.na(input$current.income))0 else  {
+          if(is.na(input$empl.contribution))0 else input$empl.contribution/100*input$current.income}
       }else{0}]
       
       rv$retirement.data[, life.expectancy := rv$life.exp.gend$value]
       
       rv$retirement.data[, total.pens.con := pens.contribution + employer.contribution]
-   
+      
       list.pen.c.r <- CompoundRateList(list.values = if(is.na(input$pens.contr.inc))kr_incr else input$pens.contr.inc/100, 
-                       rate = if(is.na(input$pens.contr.inc))kr_incr else input$pens.contr.inc/100, 
-                       rows = nrow(rv$retirement.data)-1)
+                                       rate = if(is.na(input$pens.contr.inc))kr_incr else input$pens.contr.inc/100, 
+                                       rows = nrow(rv$retirement.data)-1)
       
       rv$retirement.data[, pen.con.rate := c(if(is.na(input$pens.contr.inc))kr_incr else input$pens.contr.inc/100, 
                                              list.pen.c.r[2:length(list.pen.c.r)] )]
       rv$retirement.data[, new.pen.rate := pen.con.rate*100]
-      # rv$retirement.data[,  := if(age <= input$retirement.age)
-      # {rv$retirement.data$total.pens.con * rv$retirement.data$new.pen.rate
-      #   } else {
-      #     0}
-      #     ]
-      
       
       rv$retirement.data[, tot.pens.con.infl := Map(PCont, 
-                                      age = rv$retirement.data$age, 
-                                      total.pens.con = rv$retirement.data$total.pens.con,
-                                      new.pen.rate = rv$retirement.data$new.pen.rate, 
-                                      MoreArgs = list(retirement.age = input$retirement.age))]
+                                                    age = rv$retirement.data$age, 
+                                                    total.pens.con = rv$retirement.data$total.pens.con,
+                                                    new.pen.rate = rv$retirement.data$new.pen.rate, 
+                                                    MoreArgs = list(retirement.age = input$retirement.age))]
       
       
       # maximum contribution per year is £40k
       rv$retirement.data[, tot.pens.con.infl := lapply(tot.pens.con.infl,  function(x){min(40000, x)})]
       
-      
-      pgr <- CompoundRateListInfl(list.values = if(is.null(input$pen.growth))kexpected.returns$med else kexpected.returns[[input$pen.growth]], 
-                                  rate = if(is.null(input$pen.growth))kexpected.returns$med else kexpected.returns[[input$pen.growth]], 
+      pgr <- CompoundRateListInfl(list.values = if(is.null(input$pen.growth))kexpected.returns$medium else kexpected.returns[[input$pen.growth]], 
+                                  rate = if(is.null(input$pen.growth))kexpected.returns$medium else kexpected.returns[[input$pen.growth]], 
                                   rows = nrow(rv$retirement.data))
-      
       sgr <- CompoundRateListInfl(list.values = if(is.null(input$sav.growth))kexpected.returns$low else kexpected.returns[[input$sav.growth]], 
-                                  rate = if(is.null(input$sav.growth))kexpected.returns$low_med else kexpected.returns[[input$sav.growth]], 
+                                  rate = if(is.null(input$sav.growth))kexpected.returns$low_medium else kexpected.returns[[input$sav.growth]], 
                                   rows = nrow(rv$retirement.data))
       
       rv$retirement.data[, pens.growth.rate := pgr[2:length(pgr)]]
       rv$retirement.data[, sav.growth.rate := sgr[2:length(sgr)]]
-
-      #Adding the annual contributions to the pension pot
-      rv$retirement.data[, pens.cont.fin := cumsum(rv$retirement.data$tot.pens.con.infl)]
-      rv$retirement.data[, closing.pen.pot := (pension.pot+pens.cont.fin)*(1+pens.growth.rate)]
       
+      #Make the lowest growth rate based on the age that the user wants to move pension to lower risk investments
+      if(!is.na(input$inv.change)){
+        req(input$inv.change > 0)
+        change.age <- input$take.pens.age - input$inv.change
+        if(change.age >0 ){
+          pension.growth.rate.at.age <- rv$retirement.data[age == change.age, c(pens.growth.rate)]
+          low.pgr <- CompoundRateListInfl(list.values = kexpected.returns$low, 
+                                          rate = kexpected.returns$low, 
+                                          rows = nrow(rv$retirement.data))
+          low.pgr.new <- low.pgr[2:length(low.pgr)]*pension.growth.rate.at.age
+          row.num.change <- nrow(rv$retirement.data) - which(rv$retirement.data$age == change.age)+1
+          rv$retirement.data[age >= change.age , pens.growth.rate := low.pgr.new[1:row.num.change]]
+        } else {
+          shinyalert("Years to move Investments to Low Risk", "The number of years enterred are too many to calculate, please adjust", type = "error")
+          req(FALSE)
+        }
+        
+      }
+      
+      
+      #Adding the annual contributions to the pension pot
       pension.graph <- rv$retirement.data[, .(age, pension.pot, pens.growth.rate, life.expectancy)]
       
       pension.graph[, new.cont := as.numeric(rv$retirement.data$tot.pens.con.infl)]
@@ -272,41 +351,104 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
       pension.graph[1, closing.pen := new.cont+as.numeric(pension.pot)*pens.growth.rate]
       
       closing.pen.list <- PensionTotalList(list.values =  pension.graph$closing.pen[1], 
-                               new.contr =  pension.graph$new.cont, 
-                               rate =  pension.graph$pens.growth.rate[1],
-                               rows = nrow(pension.graph)-1)
+                                           new.contr =  pension.graph$new.cont, 
+                                           rate =  pension.graph$pens.growth.rate[1],
+                                           rows = nrow(pension.graph)-1)
+      
+      
       pension.graph[, closing.pen := if(sum(closing.pen.list) ==0)0 else closing.pen.list]
-     
+      
+      
+      
+      if(change.age >0 & !is.null(change.age)){
+        
+        growth.change <- pension.graph[age == change.age, c(closing.pen)]  
+        closing.pen.list.lower <- PensionTotalList(list.values =  growth.change, 
+                                                   new.contr = rep(0,nrow(pension.graph)), 
+                                                   rate =  1+kexpected.returns$low,
+                                                   rows = nrow(pension.graph)-1)
+        if(sum(closing.pen.list > 0)){
+          new.closing.pen.list.a <- c(closing.pen.list[1:which(closing.pen.list == closing.pen.list.lower[1])])
+          rows.pg <- nrow(pension.graph) - length(new.closing.pen.list.a)+1
+          new.closing.pen.list.b <- c(new.closing.pen.list.a,
+                                      closing.pen.list.lower[2:rows.pg])
+          
+          pension.graph[, closing.pen := if(sum(new.closing.pen.list.b) ==0)0 else new.closing.pen.list.b]
+          
+          rv$lump.sum.base <- pension.graph[age == input$take.pens.age, closing.pen]
+          
+          if(input$lump.sum.1){
+            #Adjust Pension amount for taking tax free amount at start of taking pension
+            lump.sum.amount <- rv$lump.sum.base * input$lump.sum/100
+            lump.sum.growth.rate <- pension.graph[age >= input$take.pens.age, pens.growth.rate]/ pension.graph[age >= input$take.pens.age, pens.growth.rate][1]
+            lump.sum.list <- lump.sum.amount *lump.sum.growth.rate
+            
+            pension.graph[age >= input$take.pens.age, lump.sum.adj := lump.sum.list]
+            pension.graph[is.na(pension.graph)] <-0
+            pension.graph[, closing.pen := closing.pen - lump.sum.adj][, lump.sum.adj := NULL]
+          }
+          
+        }
+        
+      }
+      
+      if(!(input$pension.option)){
+        pension.graph <- pension.graph[1:which(age == input$take.pens.age)]
+        
+      }
+      
       rv$pension.graph <- pension.graph
       rv$graphout <- 1
       
       rv$plotPension <- runif(1)
       
-      # rv$retirement.data[ , p.con.inf := rv$retirement.data$pens.contribution * 
-      #                      (1- rv$retirement.data$compound.inflation)]
-      # rv$retirement.data[ , e.con.inf := rv$retirement.data$employer.contribution * 
-      #                      (1- rv$retirement.data$compound.inflation)]
-      
-      
-      #new.table[, new.contr := cumsum(rv$retirement.data$tot.pens.con.infl)]
-      #new.table[, pens.tot := pension.pot*pens.growth.rate+new.contr]
     })
   
   observe({
     rv$plotPension
     req(!is.null(rv$graphout),  sum(rv$pension.graph$closing.pen)!=0)
     fig <- plot_ly(data = rv$pension.graph,
-                   x = ~closing.pen,
-                   y = ~age,
+                   y = ~closing.pen,
+                   x = ~age,
+                   name = 'Forecast Pension Value',
                    type = 'scatter',
-                   mode = 'lines') %>%
-      layout(xaxis = list(title = "Pension Pot"),
-             yaxis = list(title = "Age" )) %>%
-      add_trace(y = ~life.expectancy) %>%
-      add_trace(y = input$retirement.age)
+                   mode = 'lines',
+                   line = list(width = 5),
+                   fill = 'tonexty') %>%
+      layout(title = 'Pension Pot Forecast',
+             yaxis = list(title = "Pension Pot"),
+             xaxis = list(title = "Age" )) %>%
+      add_trace(x = ~life.expectancy, name = 'Average Life Expectancy', fill = NA,
+                line = list(dash = 'dot')) %>% 
+      add_trace(x = input$retirement.age, name = 'Retirement Age', fill = NA,
+                line = list(dash = 'dash')) %>%
+      add_trace(x = input$take.pens.age, name = 'Pension Start', fill = NA,
+                line = list(dash = 'dash'))
     
-  output$pension.graph <- renderPlotly(fig)
- 
+    # Lump Sum Graph 
+    value.annuity <- rv$lump.sum.base
+    pie.data <-  data.table(class = c('lump sum', 'annuity'),
+                            amount = c(
+                              if(input$lump.sum.1){
+                                input$lump.sum/100 *  value.annuity} else {0},
+                              if(input$lump.sum.1){
+                                (1 - (input$lump.sum/100)) * value.annuity}
+                              else {value.annuity}))
+    
+    pie <- plot_ly(data = pie.data,
+                   values = ~amount,
+                   labels = ~factor(class),
+                   marker = list(colors = c("green", "purple")),
+                   type = "pie",
+                   textinfo = 'text + values',
+                   text = paste(round(pie.data$amount,0))) %>%
+      layout(title = if(!(input$lump.sum.1)) "Remaining Pension Pot" else 
+        "Lump Sum and Remaining Pension Pot")
+    
+    output$annuity.pie.graph <- renderPlotly(pie)
+    
+    output$pension.graph <- renderPlotly(fig)
+    
   })
   
   # Admin ===============================================================
