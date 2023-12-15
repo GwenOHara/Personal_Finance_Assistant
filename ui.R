@@ -51,12 +51,12 @@ ui <- dashboardPage(
       uiOutput('style_tag'),
       # Check https://fontawesome.com/v5.3.1/icons?d=gallery&m=free for more valid icon names
       
-      menuItem("Stocks & Shares", icon = icon("money-check-dollar"), startExpanded = TRUE,
-               menuSubItem("Share Prices", tabName = "Tab2", icon = icon("chart-line"))#,
-               #menuSubItem("Tab 3", tabName = "Tab3", icon = icon("chart-line"))
-      ),
+      # menuItem("Stocks & Shares", icon = icon("money-check-dollar"), startExpanded = TRUE,
+      #          menuSubItem("Share Prices", tabName = "Tab2", icon = icon("chart-line"))#,
+      #          #menuSubItem("Tab 3", tabName = "Tab3", icon = icon("chart-line"))
+      # ),
       
-      menuItem("Retirement Plan", tabName = 'Tab3', icon = icon("coins"))
+      menuItem("Retirement Plan", tabName = 'Tab2', icon = icon("coins"))
       
     )
     
@@ -83,6 +83,7 @@ ui <- dashboardPage(
       
       # Premium Bonds ===============================================================
       tabItem("Tab1",
+              fluidPage(theme = shinytheme("cyborg"),
               titlePanel(htmlOutput('title')),
               mainPanel(  br(),
                           br(),
@@ -99,72 +100,72 @@ ui <- dashboardPage(
                           DTOutput("prize.matches"),
                           br(),
                           withSpinner(DTOutput("pbtable"))
-              )
+              ))
       ),
       
       # Share Prices ===============================================================
-      tabItem("Tab2",
-              #This tab is adapted from the basic code from:
-              # A shiny app for monitoring a stock portfolio and comparing stock performance
-              # January 2021
-              # Peer Christensen
-              # hr.pchristensen@gmail.com
-              fluidPage(theme = shinytheme("cyborg"),
-                
-                # Title
-                titlePanel("Shares"),
-                
-                # Sidebar 
-                sidebarLayout(
-                  sidebarPanel(width = 3,
-                               
-                               # Let user pick stocks
-                               pickerInput(
-                                 inputId = "stocks",
-                                 label = h4("Shares"),
-                                 choices = NULL,
-                                 options = list(`actions-box` = TRUE, 
-                                                liveSearch = TRUE), 
-                                 multiple = T
-                               ),
-                               
-                               # Pick time period
-                               radioButtons("period", label = h4("Period"),
-                                            choices = list("1 month" = 1, "3 months" = 2, "6 months" = 3, 
-                                                           "12 months" = 4, "5 years" = 5, "YTD" = 6), 
-                                            selected = 4
-                               ),
-                               
-                               # Pick benchmark
-                               radioButtons("benchmark", label = h4("Benchmark"),
-                                            choices = list("SP500" = 1, "FTSE100" = 2,"None" = 3),
-                                            selected = 3)
-                              
-                               
-                  ),
-                  
-                  # Plot results
-                  mainPanel(
-                    h4(tags$b('Last Closing Share Price')),
-                    DTOutput('share.price.table'),
-                    h4(tags$b('Share Price')),
-                    withSpinner(plotlyOutput("share.price.plot",height=800)),
-                    br(),
-                    h4(tags$b('Baselined to 100')),
-                    withSpinner(plotlyOutput("relative.share.price.plot",height=800))
-                  )
-                )
-              )
-              
-              # "Here's a browser button. Use it when developing to pause the app and run ad-hoc code:",
-              # actionButton("browser", "browser()")
-              
-      ),
-      
+      # tabItem("Tab3",
+      #         #This tab is adapted from the basic code from:
+      #         # A shiny app for monitoring a stock portfolio and comparing stock performance
+      #         # January 2021
+      #         # Peer Christensen
+      #         # hr.pchristensen@gmail.com
+      #         fluidPage(theme = shinytheme("cyborg"),
+      #           
+      #           # Title
+      #           titlePanel("Shares"),
+      #           
+      #           # Sidebar 
+      #           sidebarLayout(
+      #             sidebarPanel(width = 3,
+      #                          
+      #                          # Let user pick stocks
+      #                          pickerInput(
+      #                            inputId = "stocks",
+      #                            label = h4("Shares"),
+      #                            choices = NULL,
+      #                            options = list(`actions-box` = TRUE, 
+      #                                           liveSearch = TRUE), 
+      #                            multiple = T
+      #                          ),
+      #                          
+      #                          # Pick time period
+      #                          radioButtons("period", label = h4("Period"),
+      #                                       choices = list("1 month" = 1, "3 months" = 2, "6 months" = 3, 
+      #                                                      "12 months" = 4, "5 years" = 5, "YTD" = 6), 
+      #                                       selected = 4
+      #                          ),
+      #                          
+      #                          # Pick benchmark
+      #                          radioButtons("benchmark", label = h4("Benchmark"),
+      #                                       choices = list("SP500" = 1, "FTSE100" = 2,"None" = 3),
+      #                                       selected = 3)
+      #                         
+      #                          
+      #             ),
+      #             
+      #             # Plot results
+      #             mainPanel(
+      #               h4(tags$b('Last Closing Share Price')),
+      #               DTOutput('share.price.table'),
+      #               h4(tags$b('Share Price')),
+      #               withSpinner(plotlyOutput("share.price.plot",height=800)),
+      #               br(),
+      #               h4(tags$b('Baselined to 100')),
+      #               withSpinner(plotlyOutput("relative.share.price.plot",height=800))
+      #             )
+      #           )
+      #         )
+      #         
+      #         # "Here's a browser button. Use it when developing to pause the app and run ad-hoc code:",
+      #         # actionButton("browser", "browser()")
+      #         
+      # ),
+      # 
       # Retirement Planning ===============================================================
       
       
-      tabItem("Tab3",
+      tabItem("Tab2",
               fluidRow(
                 column(6, 
                        uiOutput('file.input.ret')),
@@ -297,7 +298,10 @@ ui <- dashboardPage(
                          PopifyDelayed("Start Pension Age", "Enter the age you plan to start taking your pwersonal pension")),
                 column(width = 2, numericInput("inv.change", "Years before retirement to move investments to lower risk", value = 5) %>% 
                          PopifyDelayed("Investment Change", "Enter how many years before taking pension you want to move your investments to low risk investments")),
-                switchInput('pension.option', label = 'Pension Type', onLabel = 'Drawdown' , offLabel = 'Annuity')
+                column(width = 2, switchInput('pension.option', label = 'Pension Type', onLabel = 'Drawdown' , offLabel = 'Annuity')),
+                column(width = 2, shinyjs::hidden(numericInput("drawdown.amount", "Amount to draw from pension per year", value = NULL)) %>% 
+                         PopifyDelayed("Pension Drawdown Amount", "Enter the amont you think you will need to draw from your pension each year to cover expenses.  This has been populated based on your current income using Department of Work and Pensions guidelines")),
+                
               ),
               
               column(width = 3, 
@@ -321,7 +325,10 @@ ui <- dashboardPage(
               fluidRow(
                 box(width = 12,
                     div (style = 'overflow-y:hidden; height:calc(100vh-300px_; width:100%',
-                         plotlyOutput('annuity.pie.graph')))
+                         htmlOutput('annuity.table.title'),
+                         br(),
+                         DTOutput("annuity.table.inf"),
+                        plotlyOutput('annuity.pie.graph')))
               )
               
                   

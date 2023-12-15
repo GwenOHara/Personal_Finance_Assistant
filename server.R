@@ -118,36 +118,36 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   
   # Share Price Tracker #### ===============================================================
   
-  rv$ftse100 <- kftse100
-  rv$sp500 <- ksp500 
-  rv$stocks <- NULL
-  
-  observe({
-    req(kftse100tickers, ksp500tickers.data)
-    rv$alltickers <- GetAllTickers(kftse100tickers, ksp500tickers.data)
-  })
-  
-  observeEvent(input$Tabs,{
-    if(input$Tabs == "Tab2")LoadStockData(rv = rv, session = session)
-  })
-  
-  observeEvent(c(input$period,input$stocks,input$benchmark), {
-    req(!is.null(rv$stocks))
-    prices <- Shares_Calculate_Data_For_Graphs(rv, input)
-    
-    # Create plot
-    output$share.price.plot <- renderPlotly({
-      SharePriceGraph1(prices)
-    })
-    
-    output$relative.share.price.plot <- renderPlotly({
-      SharePriceGraph2(prices)
-    })
-    
-    output$share.price.table <- renderDT(datatable(SharePriceTable(prices), 
-                                                   rownames =FALSE), 
-    )
-  })
+  # rv$ftse100 <- kftse100
+  # rv$sp500 <- ksp500 
+  # rv$stocks <- NULL
+  # 
+  # observe({
+  #   req(kftse100tickers, ksp500tickers.data)
+  #   rv$alltickers <- GetAllTickers(kftse100tickers, ksp500tickers.data)
+  # })
+  # 
+  # observeEvent(input$Tabs,{
+  #   if(input$Tabs == "Tab2")LoadStockData(rv = rv, session = session)
+  # })
+  # 
+  # observeEvent(c(input$period,input$stocks,input$benchmark), {
+  #   req(!is.null(rv$stocks))
+  #   prices <- Shares_Calculate_Data_For_Graphs(rv, input)
+  #   
+  #   # Create plot
+  #   output$share.price.plot <- renderPlotly({
+  #     SharePriceGraph1(prices)
+  #   })
+  #   
+  #   output$relative.share.price.plot <- renderPlotly({
+  #     SharePriceGraph2(prices)
+  #   })
+  #   
+  #   output$share.price.table <- renderDT(datatable(SharePriceTable(prices), 
+  #                                                  rownames =FALSE), 
+  #   )
+  # })
   
   # Retirement Forecaster ===============================================================
   #Source of assumptions
@@ -178,6 +178,19 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   observe(ShowHideElement('pens.contr.inc', input$making.contributions!=TRUE))
   observe(ShowHideElement('lump.sum', input$lump.sum.1!=TRUE))
   observe(ShowHideElement('annuity.pie.graph', input$lump.sum.1!=TRUE))
+  observe(ShowHideElement('drawdown.amount', input$pension.option!=TRUE))
+  observe(ShowHideElement('annuity.table.title', input$pension.option==TRUE))
+  observe(ShowHideElement('annuity.table.inf', input$pension.option==TRUE))
+
+  observeEvent({input$current.income ;input$pension.option}, {
+    req(input$pension.option==TRUE, input$current.income > 0)
+    if(input$current.income <= 14300) income.level <- 0.8 * input$current.income
+    if(input$current.income > 14301 && input$current.income <= 37600) income.level <- 0.7 * input$current.income
+    if(input$current.income > 37601 && input$current.income <= 60000) income.level <- 0.6 * input$current.income
+    if(input$current.income >= 60001) income.level <- 0.5 * input$current.income
+    
+    updateNumericInput(session, 'drawdown.amount', "Amount to draw from pension per year", value = income.level)
+    })
   
   observe({
     req(kr_infl)
@@ -268,7 +281,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     input$making.contributions; input$take.pens.age; input$inv.change; input$pension.option;
     input$lump.sum; input$lump.sum.1; input$age},{
       req(rv$life.exp.gend,input$age>1)
-      
+     
       if(!is.na(input$inflation)){
         #Adjust expected returns for inflation and platform fees(0.5%)
         kexpected.returns <- kexpected.returns - input$inflation/100 - 0.005
@@ -325,6 +338,8 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
       pgr <- CompoundRateListInfl(list.values = if(is.null(input$pen.growth))kexpected.returns$medium else kexpected.returns[[input$pen.growth]], 
                                   rate = if(is.null(input$pen.growth))kexpected.returns$medium else kexpected.returns[[input$pen.growth]], 
                                   rows = nrow(rv$retirement.data))
+      
+      
       sgr <- CompoundRateListInfl(list.values = if(is.null(input$sav.growth))kexpected.returns$low else kexpected.returns[[input$sav.growth]], 
                                   rate = if(is.null(input$sav.growth))kexpected.returns$low_medium else kexpected.returns[[input$sav.growth]], 
                                   rows = nrow(rv$retirement.data))
@@ -403,6 +418,24 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
       
       if(!(input$pension.option)){
         pension.graph <- pension.graph[1:which(age == input$take.pens.age)]
+        annuity <- pension.graph[.N, closing.pen]
+        annuity.rate.table <- round((kAnnuity.Rates[, c('55','60', '65', '70', '75')]/100000 * annuity), 0)
+        
+        
+        #Work out inflation rate to adjust back to todays money
+        today.inflation.back.adjustment.rate <- CompoundRateListInfl(list.values = rv$retirement.data[1, compound.inflation], 
+                                                                     rate = rv$retirement.data[1, compound.inflation], 
+                                                                     rows = nrow(pension.graph)+1)
+        annuity.rate.tabl.infl.adj <- round((annuity.rate.table/tail(today.inflation.back.adjustment.rate,1)),0)
+      
+        annuity.rate.tabl.infl.adj <- ColNumThousandFormat(annuity.rate.tabl.infl.adj, '55')
+        annuity.rate.tabl.infl.adj <- ColNumThousandFormat(annuity.rate.tabl.infl.adj, '60')
+        annuity.rate.tabl.infl.adj <- ColNumThousandFormat(annuity.rate.tabl.infl.adj, '65')
+        annuity.rate.tabl.infl.adj <- ColNumThousandFormat(annuity.rate.tabl.infl.adj, '70')
+        annuity.rate.tabl.infl.adj <- ColNumThousandFormat(annuity.rate.tabl.infl.adj, '75')
+        
+        rv$annuity.rate.table.adj <- cbind(Type = kAnnuity.Rates[,1], annuity.rate.tabl.infl.adj)
+      } else {
         
       }
       
@@ -457,6 +490,14 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     output$annuity.pie.graph <- renderPlotly(pie)
     
     output$pension.graph <- renderPlotly(fig)
+    
+    output$annuity.table.title <- renderText(paste("<b>",'Potential Annuity Amounts in todays value', "<b>"))
+    output$annuity.table.inf <- renderDT(rv$annuity.rate.table.adj, rownames =FALSE, 
+                                     options = list(
+                                       pageLength = 1000,
+                                       pagination = FALSE
+                                     )) 
+    
     
   })
   

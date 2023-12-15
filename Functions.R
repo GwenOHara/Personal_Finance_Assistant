@@ -28,6 +28,8 @@ klife_exp <- read.csv("https://raw.githubusercontent.com/GwenOHara/Personal_Fina
                      check.names = FALSE)
 klife_exp2 <- melt(data.table(klife_exp), id.vars = c('sex'))
 kassumptions <- read.csv("https://raw.githubusercontent.com/GwenOHara/Personal_Finance_Assistant/retirement_planner/data/retirement_forecast_assumptions.csv")
+kAnnuity.Rates <- read.csv("https://raw.githubusercontent.com/GwenOHara/Personal_Finance_Assistant/retirement_planner/data/annuity.rates.csv",
+                           check.names = FALSE)
 kr_stk <- kassumptions$global_stocks
 kr_bond <- kassumptions$global_bonds
 kr_infl <- kassumptions$inflation
