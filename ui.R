@@ -300,16 +300,27 @@ ui <- dashboardPage(
                 switchInput('pension.option', label = 'Pension Type', onLabel = 'Drawdown' , offLabel = 'Annuity')
               ),
               
-              column(width = 3, sliderInput("lump.sum", "Select % of pension to take", 
-                                            min = 0, max = 25, value = 25) %>% 
-                       PopifyDelayed("a", "Enter your current age in years"))
-              ),
+              column(width = 3, 
+                     sliderTextInput(
+                       inputId = "lump.sum",
+                       label = "Select tax free % of pension to take:", 
+                       choices = seq(from = 25,
+                                     to = 0,
+                                     by = -1),
+                       grid = TRUE
+                     )%>% 
+                       PopifyDelayed("a", "Enter your current age in years"))),
               
               fluidRow(
                 box(width = 12,
                     div (style = 'overflow-y:hidden; height:calc(100vh-300px_; width:100%',
-                         plotlyOutput('pension.graph'),
-                         br(),
+                         plotlyOutput('pension.graph')))
+              ),
+              
+              
+              fluidRow(
+                box(width = 12,
+                    div (style = 'overflow-y:hidden; height:calc(100vh-300px_; width:100%',
                          plotlyOutput('annuity.pie.graph')))
               )
               

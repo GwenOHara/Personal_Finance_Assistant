@@ -151,9 +151,18 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   
   # Retirement Forecaster ===============================================================
   #Source of assumptions
+  #Projected return growth for investments
   #https://advisors.vanguard.com/insights/article/series/market-perspectives#projected-returns
   
+  #Life expectancy
   #https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/lifeexpectancies/datasets/expectationoflifeprincipalprojectionunitedkingdom
+  
+  #Current annuity rates
+  #https://www.hl.co.uk/retirement/annuities/best-buy-rates
+  #or
+  #https://www.sharingpensions.co.uk/annuity_rates.htm
+  #or
+  #https://www.retirementline.co.uk/annuities/annuity-rates/
   
   
   # When calculating  what income is needed in retirement use Department of Work and Pensions guidelines of:
@@ -257,7 +266,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     input$empl.contribution; input$cash.not.isa; input$cash; input$lisa; input$s_and_s;
     input$other; input$inflation; input$retirement.age; input$sav.growth; input$pen.growth;
     input$making.contributions; input$take.pens.age; input$inv.change; input$pension.option;
-    input$lump.sum; input$lump.sum.1},{
+    input$lump.sum; input$lump.sum.1; input$age},{
       req(rv$life.exp.gend,input$age>1)
       
       if(!is.na(input$inflation)){
