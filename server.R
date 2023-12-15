@@ -299,19 +299,21 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
       rv$retirement.data[, lisa := if(is.na(input$lisa))0 else input$lisa]
       rv$retirement.data[, ss.isa := if(is.na(input$s_and_s))0 else input$s_and_s]
       rv$retirement.data[, other := if(is.na(input$other))0 else input$other]
-      
-      rv$retirement.data[, pens.contribution := if(input$making.contributions == TRUE){
-        if(is.na(input$current.income))0 else  {
-          if(is.na(input$contribution))0 else input$contribution/100*input$current.income
-          
-          #TODO do something with input$pens.contr.inc
-          
+   
+      if(input$making.contributions == TRUE){
+      rv$retirement.data[, pens.contribution := if(is.na(input$current.income))0 else  {
+          if(is.na(input$contribution))0 else input$contribution/100*input$current.income}]
+        
+        rv$retirement.data[, employer.contribution := if(is.na(input$current.income))0 else  {
+          if(is.na(input$empl.contribution))0 else input$empl.contribution/100*input$current.income}]
+        
         }
-      }else{0}]
-      rv$retirement.data[, employer.contribution := if(input$making.contributions == TRUE){
-        if(is.na(input$current.income))0 else  {
-          if(is.na(input$empl.contribution))0 else input$empl.contribution/100*input$current.income}
-      }else{0}]
+      
+      if(input$making.contributions == FALSE){
+        rv$retirement.data[, pens.contribution := 0]
+        rv$retirement.data[, employer.contribution := 0]
+        }
+      
       
       rv$retirement.data[, life.expectancy := rv$life.exp.gend$value]
       
@@ -448,6 +450,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   
   observe({
     rv$plotPension
+    output$pension.graph <- NULL
     req(!is.null(rv$graphout),  sum(rv$pension.graph$closing.pen)!=0)
     fig <- plot_ly(data = rv$pension.graph,
                    y = ~closing.pen,
