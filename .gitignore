@@ -2,4 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-data/
+data/all_bonds.csv
+data/bonds.csv
+data/last_time_bonds.csv
+data/retirement forecast settings.csv
