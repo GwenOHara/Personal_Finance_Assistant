@@ -162,12 +162,12 @@ MakeMatchTable <- function(output, prem.bonds.prize.data, all.bonds){
   output$successful.message <- renderText(("There is a match in the high value winners this month!"))
   
   table <- data.table(prem.bonds.prize.data)
-  match.table <- table[, match := lapply(`Bond Number`, function(x) x %in% all.bonds$bonds)]
-  filter.match.table <-  match.table[`match` == "TRUE"][, `match` := NULL]
+  matches <- intersect(table$`Bond Number`, all.bonds$bond)
+  filter.match.table <- table[`Bond Number` %in% matches]
   
   setkey(filter.match.table, `Bond Number`)
-  setkey(all.bonds, `bonds`)
-  out <- filter.match.table[all.bonds]
+  setkey(all.bonds, `bond`)
+  out <- all.bonds[filter.match.table]
 }
 
 #### Share Price Tracker ####

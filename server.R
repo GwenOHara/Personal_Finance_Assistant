@@ -96,13 +96,12 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     bonds <- read.csv(input$premium.bonds$datapath)
     all.bonds <- MakeBondNumbers(bonds = bonds)
     
-    if(any(rv$prem.bonds.prize.data$`Bond Number` %in% all.bonds$bonds)){
+    if(any(rv$prem.bonds.prize.data$`Bond Number` %in% all.bonds$bond)){
       filter.match.table <- MakeMatchTable(output = output, 
                                            prem.bonds.prize.data = rv$prem.bonds.prize.data, 
                                            all.bonds = all.bonds)
       
-      output$prize.matches <- renderDT(datatable(filter.match.table, rownames =FALSE), 
-                                       filter = "top",
+      output$prize.matches <- renderDT(filter.match.table,
                                        options = list(
                                          pageLength = 1000,
                                          pagination = TRUE
@@ -192,6 +191,18 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     updateNumericInput(session, 'drawdown.amount', "Amount to draw from pension per year", value = income.level)
     })
   
+  
+  
+  observeEvent({input$current.income}, {
+    req(input$current.income > 0)
+    if(input$current.income <= 14300) income.level <- 0.8 * input$current.income
+    if(input$current.income > 14301 && input$current.income <= 37600) income.level <- 0.7 * input$current.income
+    if(input$current.income > 37601 && input$current.income <= 60000) income.level <- 0.6 * input$current.income
+    if(input$current.income >= 60001) income.level <- 0.5 * input$current.income
+    
+    updateNumericInput(session, 'ret.expenses', "Expected total expenses per year", value = income.level)
+  })
+  
   observe({
     req(kr_infl)
     updateNumericInputIcon(session, 'inflation', "Inflation Rate", value = kr_infl*100,
@@ -279,7 +290,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     input$empl.contribution; input$cash.not.isa; input$cash; input$lisa; input$s_and_s;
     input$other; input$inflation; input$retirement.age; input$sav.growth; input$pen.growth;
     input$making.contributions; input$take.pens.age; input$inv.change; input$pension.option;
-    input$lump.sum; input$lump.sum.1; input$age},{
+    input$lump.sum; input$lump.sum.1; input$age; input$drawdown.amount; input$ret.expenses},{
       req(rv$life.exp.gend,input$age>1)
      
       if(!is.na(input$inflation)){
@@ -418,16 +429,17 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
         
       }
       
+      #Work out inflation rate to adjust back to todays money
+      today.inflation.back.adjustment.rate <- CompoundRateListInfl(list.values = rv$retirement.data[1, compound.inflation], 
+                                                                   rate = rv$retirement.data[1, compound.inflation], 
+                                                                   rows = nrow(pension.graph)+1)
+      
+      
       if(!(input$pension.option)){
         pension.graph <- pension.graph[1:which(age == input$take.pens.age)]
         annuity <- pension.graph[.N, closing.pen]
         annuity.rate.table <- round((kAnnuity.Rates[, c('55','60', '65', '70', '75')]/100000 * annuity), 0)
         
-        
-        #Work out inflation rate to adjust back to todays money
-        today.inflation.back.adjustment.rate <- CompoundRateListInfl(list.values = rv$retirement.data[1, compound.inflation], 
-                                                                     rate = rv$retirement.data[1, compound.inflation], 
-                                                                     rows = nrow(pension.graph)+1)
         annuity.rate.tabl.infl.adj <- round((annuity.rate.table/tail(today.inflation.back.adjustment.rate,1)),0)
       
         annuity.rate.tabl.infl.adj <- ColNumThousandFormat(annuity.rate.tabl.infl.adj, '55')
@@ -438,8 +450,35 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
         
         rv$annuity.rate.table.adj <- cbind(Type = kAnnuity.Rates[,1], annuity.rate.tabl.infl.adj)
       } else {
+       #Work out the value of the future withdrawables using inflation
+        req(input$drawdown.amount > 0)
+        pension.graph[, infl := today.inflation.back.adjustment.rate[2:(nrow(pension.graph)+1)]]
+        pension.graph[, drawdown := fifelse(age >= input$take.pens.age, -input$drawdown.amount*infl, 0)]
+        pension.graph[ , drawdown.cum := cumsum(drawdown)]
+        pension.graph[, new.close := closing.pen + drawdown.cum]
+        pension.graph[, closing.pen := as.numeric(lapply(new.close, function(x) max(0, x)))]
+
         
       }
+      
+      
+      # Make income vs expenses table 
+      if(!is.na(input$ret.expenses)){
+       # browser()
+      
+      income.exp <- data.table(Age = input$retirement.age:110,
+                               Expenses = input$ret.expenses)
+      }
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       rv$pension.graph <- pension.graph
       rv$graphout <- 1
