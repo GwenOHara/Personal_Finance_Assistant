@@ -176,16 +176,16 @@ ui <- dashboardPage(
               box(title = 'About You',
                   width = 12, height = "auto", background = 'light-blue',
                   collapsible = TRUE,
-                  column(width = 1, numericInput("age", "Your Age", value = 40) %>% 
+                  column(width = 3, numericInput("age", "Your Age", value = 40) %>% 
                             PopifyDelayed("Age", "Enter your current age in years")),
                   column(width = 2, 
                          radioGroupButtons(
                            inputId = "gender",
                            label = "Gender",
                            choices = c("Female", "Male"))),
-                  column(width = 1, numericInput("retirement.age", "Retirement Age", value = 55) %>% 
+                  column(width = 3, numericInput("retirement.age", "Retirement Age", value = 55) %>% 
                            PopifyDelayed("Retirement Age", "Enter the age you plan to retire")),
-                  column(width = 2, numericInputIcon("current.income", "What is your current annual income (before tax)", value = NULL,
+                  column(width = 3, numericInputIcon("current.income", "What is your current annual income (before tax)", value = NULL,
                                                  icon = icon("sterling-sign")) %>% 
                            PopifyDelayed("title3", "Enter your cuurrent income so that target income can be calculated"))#,
               ),
@@ -301,6 +301,9 @@ ui <- dashboardPage(
                 column(width = 2, switchInput('pension.option', label = 'Pension Type', onLabel = 'Drawdown' , offLabel = 'Annuity')),
                 column(width = 2, shinyjs::hidden(numericInput("drawdown.amount", "Amount to draw from pension per year", value = NULL)) %>% 
                          PopifyDelayed("Pension Drawdown Amount", "Enter the amont you think you will need to draw from your pension each year to cover expenses.  This has been populated based on your current income using Department of Work and Pensions guidelines")),
+                column(width = 2, numericInput("ret.expenses", "Expected total expenses per year", value = NULL) %>% 
+                         PopifyDelayed("Expenses", "Enter the expected amount of annual expenses"))
+                
                 
               ),
               
