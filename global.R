@@ -15,6 +15,7 @@ library(data.table)
 library(shinythemes)
 library(shinyalert)
 library(htmltools)
+library(conflicted)
 
 #Stocks & Shares packages
 library(tidyverse)
