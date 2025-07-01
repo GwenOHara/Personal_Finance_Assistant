@@ -1,10 +1,10 @@
 
-ui <- dashboardPage(
+ui <- shinydashboardPlus::dashboardPage(
   
   title = "Personal Finance Assistant",
   skin = "blue",
   
-  header = dashboardHeader(
+  header = shinydashboardPlus::dashboardHeader(
     title = tagList(
       
       # The bit before the comma here is shown by default in the top-left. The bit after the comma is shown when the sidebar is collapsed.
@@ -30,7 +30,7 @@ ui <- dashboardPage(
   
   # Sidebar ===============================================================
   
-  sidebar = dashboardSidebar(
+  sidebar = shinydashboardPlus::dashboardSidebar(
     id = 'SidebarExpanded',  # ID so that observers (e.g. for the TM1 buttons) can find out if the sidebar has been collapsed or not
     
     # Reference the .css file, where styling can be added
@@ -173,7 +173,7 @@ ui <- dashboardPage(
                     uiOutput('download.button.ret'))
               ),
               # titlePanel(htmlOutput('title')),
-              box(title = 'About You',
+              shinydashboardPlus::box(title = 'About You',
                   width = 12, height = "auto", background = 'light-blue',
                   collapsible = TRUE,
                   column(width = 3, numericInput("age", "Your Age", value = 40) %>% 
@@ -190,7 +190,7 @@ ui <- dashboardPage(
                            PopifyDelayed("title3", "Enter your cuurrent income so that target income can be calculated"))#,
               ),
               
-              box(title = 'Your Current Financial Position',
+              shinydashboardPlus::box(title = 'Your Current Financial Position',
                   width = 12, height = "auto", background = 'light-blue',
                   collapsible = TRUE,
                   fluidRow(
@@ -261,7 +261,7 @@ ui <- dashboardPage(
                            PopifyDelayed("c", "Enter your expected annual savings"))
                 )
               ),
-              box(title = 'Your Assumptions',
+              shinydashboardPlus::box(title = 'Your Assumptions',
                   width = 12, height = "auto", background = 'light-blue',
                   collapsible = TRUE,
                   fluidRow(
@@ -319,14 +319,14 @@ ui <- dashboardPage(
                        PopifyDelayed("a", "Enter your current age in years"))),
               
               fluidRow(
-                box(width = 12,
+                shinydashboardPlus::box(width = 12,
                     div (style = 'overflow-y:hidden; height:calc(100vh-300px_; width:100%',
                          plotlyOutput('pension.graph')))
               ),
               
               
               fluidRow(
-                box(width = 12,
+                shinydashboardPlus::box(width = 12,
                     div (style = 'overflow-y:hidden; height:calc(100vh-300px_; width:100%',
                          htmlOutput('annuity.table.title'),
                          br(),

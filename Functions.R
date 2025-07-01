@@ -115,14 +115,14 @@ ShowHideTabs <- function(inputID, tabs.to.hide, hide.flag){
 
 
 CreateAllBonds <- function(first.bond, second.bond, owner){
+  
   #Get only the numbers
-  end.first <- substr(first.bond, 6, 11)
-  end.second <- substr(second.bond, 6, 11)
   start.first <- substr(first.bond, 1, 5)
+  end.first <- as.numeric(substr(first.bond, 6, 11))
+  end.second <- as.numeric(substr(second.bond, 6, 11))
   interpolate.bonds <- seq.int(from = end.first, to = end.second)
   full.bond.names <- data.table(bond = paste0(start.first, interpolate.bonds),
                                 owner = owner)
-  
 }
 
 
