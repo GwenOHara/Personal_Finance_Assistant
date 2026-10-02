@@ -37,7 +37,13 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
   
   #Check if the file exists on NS&I website 
   check.data <- CheckPrizeFileExists(newFile = knewFile)
+  new_file <- knewFile
   
+  # If original file unavailable check an alternative naming convention
+  if(is.null(check.data)){
+    check.data <- CheckPrizeFileExists(newFile = knewFilealt)
+    new_file <- knewFilealt
+  }
   
   output$premium_bond_download <- downloadHandler(filename = "premium.bonds.csv",
                                                   content = function(file){
@@ -50,7 +56,7 @@ shinyServer(function(input, output, session = getDefaultReactiveDomain()) {
     shinyalert("File not found", "Current months file is not available on NS&I website", type = "error")
   } else {
     #Getting prize data 
-    rv$prem.bonds.prize.data <- prem.bond.prize.data <- GetPrizeData(newFile = knewFile)
+    rv$prem.bonds.prize.data <- prem.bond.prize.data <- GetPrizeData(newFile = new_file)
     output$pbtable <- renderDT(prem.bond.prize.data, rownames =FALSE, 
                                filter = "top",
                                options = list(

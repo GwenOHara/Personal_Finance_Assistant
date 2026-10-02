@@ -3,6 +3,7 @@
 kdate <- tolower(format(Sys.Date(), "%B-%Y"))
 # Determine the url based on this month
 knewFile <- paste0("https://www.nsandi.com/files/asset/xlsx/prize-", kdate, ".xlsx")
+knewFilealt <- paste0("https://www.nsandi.com/files/asset/xlsx/Prize-", kdate, ".xlsx")
 
 #### Fixed Variables Share Price ####
 
